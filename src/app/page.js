@@ -688,14 +688,34 @@ export default function HomePage() {
 
   return (
     <>
-      {/* HEADER LOGO & BRAND */}
+      {/* HEADER LOGO & BRAND DENGAN ORNAMEN AWAN BATIK MEGA MENDUNG */}
       <div className="brand-hero">
-        <div className="brand-logos">
+        <div className="brand-logos-wrap">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/panenraya-logo.png" alt="Logo CV. Panen Raya Sukses Sejahtera" className="company-logo" />
-          <span className="brand-divider" aria-hidden="true"></span>
+          <img
+            src="/cloud-left-prss.png"
+            alt=""
+            aria-hidden="true"
+            className="header-cloud header-cloud-left"
+          />
+          <div className="brand-logos">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/panenraya-logo.png"
+              alt="Logo CV. Panen Raya Sukses Sejahtera"
+              className="company-logo"
+            />
+            <span className="brand-divider" aria-hidden="true"></span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/familymart-logo.png" alt="Logo FamilyMart" className="familymart-logo" />
+          </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/familymart-logo.png" alt="Logo FamilyMart" className="familymart-logo" />
+          <img
+            src="/cloud-right-fmi.png"
+            alt=""
+            aria-hidden="true"
+            className="header-cloud header-cloud-right"
+          />
         </div>
         <h1>CV. Panen Raya Sukses Sejahtera</h1>
         <p className="sub-title">Portal Pemesanan Produk — Mitra Toko FamilyMart</p>

@@ -1,9 +1,12 @@
 /* ============================================================ */
-/* PORTAL PEMESANAN FMI — TEMA PUTIH · BIRU · HIJAU (OPSI A)    */
-/* Dasar putih bersih, bentuk biru & hijau besar di sudut,      */
-/* banner gradasi tunggal dengan tepi bergelombang.             */
+/* PORTAL PEMESANAN FMI — TEMA BATIK MEGA MENDUNG KOLABORASI    */
+/* Kiri: Panen Raya (Hijau Luar, Kuning Dalam)                  */
+/* Kanan: FamilyMart (Biru Luar, Hijau Dalam)                   */
 /* ============================================================ */
 :root {
+  --prss-green: #117b3d;
+  --prss-yellow: #facc15;
+  --prss-yellow-soft: #fefce8;
   --blue: #0b8ad8;
   --blue-dark: #0a66c2;
   --blue-soft: #eaf5fd;
@@ -24,9 +27,10 @@
 html,
 body {
   max-width: 100vw;
+  overflow-x: hidden;
 }
 
-/* 1. LAYOUT UTAMA & BACKGROUND (MOTIF MEGA MENDUNG BIRU & HIJAU FAMILYMART) */
+/* 1. LAYOUT UTAMA & BACKGROUND (MOTIF MEGA MENDUNG TAJAM) */
 body {
   font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   background-color: #f6fcf9;
@@ -47,17 +51,48 @@ a {
   text-decoration: none;
 }
 
-/* HEADER TRANSPARAN DI ATAS KANVAS MEGA MENDUNG */
+/* HEADER TRANSPARAN DENGAN AWAN BATIK KECIL DI SAMPING & BELAKANG LOGO */
 .brand-hero {
   position: relative;
   margin: 0 auto 22px auto;
-  padding: 4px 12px 0 12px;
+  padding: 6px 12px 0 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
+.brand-logos-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  z-index: 1;
+}
+
+.header-cloud {
+  position: absolute;
+  width: 116px;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  filter: drop-shadow(0 6px 12px rgba(15, 39, 66, 0.12));
+}
+
+.header-cloud-left {
+  left: -82px;
+  top: -18px;
+}
+
+.header-cloud-right {
+  right: -82px;
+  top: -18px;
+}
+
 .brand-logos {
+  position: relative;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -66,9 +101,8 @@ a {
   background-color: #ffffff;
   padding: 14px 30px;
   border-radius: 20px;
-  border: 1.5px solid rgba(11, 138, 216, 0.22);
-  box-shadow: 0 12px 30px rgba(10, 102, 194, 0.14), 0 4px 12px rgba(0, 166, 79, 0.08);
-  margin-bottom: 12px;
+  border: 1.5px solid rgba(17, 123, 61, 0.22);
+  box-shadow: 0 12px 30px rgba(10, 102, 194, 0.14), 0 4px 12px rgba(17, 123, 61, 0.1);
 }
 
 .brand-logos img {
@@ -80,10 +114,10 @@ a {
 .brand-divider {
   width: 2px;
   height: 46px;
-  background: linear-gradient(180deg, var(--blue), var(--green));
+  background: linear-gradient(180deg, var(--prss-yellow), var(--prss-green), var(--blue));
   border-radius: 2px;
   flex-shrink: 0;
-  opacity: 0.45;
+  opacity: 0.65;
 }
 
 .company-logo {
@@ -104,15 +138,18 @@ h1 {
 }
 
 p.sub-title {
+  position: relative;
+  z-index: 2;
   display: inline-block;
-  background: linear-gradient(90deg, var(--blue-dark) 0%, var(--blue) 48%, var(--green) 100%);
+  background: linear-gradient(90deg, var(--prss-green) 0%, var(--green) 48%, var(--blue) 100%);
   color: #ffffff;
   font-size: 13.5px;
   font-weight: 700;
   letter-spacing: 0.4px;
   padding: 7px 22px;
   border-radius: 999px;
-  box-shadow: 0 6px 16px rgba(10, 102, 194, 0.22);
+  border: 1.5px solid rgba(250, 204, 21, 0.75);
+  box-shadow: 0 6px 16px rgba(17, 123, 61, 0.22);
   margin: 0;
 }
 
@@ -124,14 +161,14 @@ p.sub-title {
   backdrop-filter: blur(6px);
   padding: 34px 38px 32px 38px;
   border-radius: 20px;
-  max-width: 880px;
+  max-width: 870px;
   margin: 0 auto 30px auto;
-  border: 1px solid rgba(11, 138, 216, 0.18);
-  box-shadow: 0 20px 50px rgba(10, 102, 194, 0.14), 0 4px 12px rgba(0, 166, 79, 0.08);
+  border: 1px solid rgba(17, 123, 61, 0.18);
+  box-shadow: 0 20px 50px rgba(10, 102, 194, 0.14), 0 4px 12px rgba(17, 123, 61, 0.08);
   text-align: left;
 }
 
-/* Garis aksen gradasi biru-hijau di sisi atas kartu */
+/* Garis aksen gradasi Kiri (Kuning-Hijau Panen Raya) -> Kanan (Hijau-Biru FamilyMart) */
 .order-card::before {
   content: "";
   position: absolute;
@@ -140,7 +177,13 @@ p.sub-title {
   right: 0;
   height: 6px;
   border-radius: 20px 20px 0 0;
-  background: linear-gradient(90deg, var(--blue), var(--green));
+  background: linear-gradient(
+    90deg,
+    #facc15 0%,
+    var(--prss-green) 32%,
+    var(--green) 66%,
+    var(--blue) 100%
+  );
 }
 
 .card-welcome {
@@ -165,7 +208,7 @@ p.sub-title {
 }
 
 .card-welcome h2 i {
-  color: var(--blue);
+  color: var(--prss-green);
 }
 
 .card-welcome-sub {
@@ -175,9 +218,9 @@ p.sub-title {
 }
 
 .date-badge {
-  background-color: var(--blue-soft);
-  color: var(--blue-dark);
-  border: 1px solid var(--blue-line);
+  background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%);
+  color: var(--prss-green);
+  border: 1px solid #86efac;
   padding: 7px 14px;
   border-radius: 999px;
   font-size: 12px;
@@ -203,7 +246,7 @@ p.sub-title {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--blue), var(--green));
+  background: linear-gradient(135deg, var(--prss-green) 0%, var(--blue) 100%);
   color: #ffffff;
   font-size: 13px;
   font-weight: bold;
@@ -211,7 +254,8 @@ p.sub-title {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 10px rgba(11, 138, 216, 0.3);
+  border: 1.5px solid #fde047;
+  box-shadow: 0 4px 10px rgba(17, 123, 61, 0.25);
 }
 
 .section-header h3 {
@@ -247,10 +291,10 @@ p.sub-title {
 .input-field {
   width: 100%;
   padding: 12px 15px;
-  border: 1.5px solid #cfdcea;
+  border: 1.5px solid #c8dcd0;
   border-radius: 12px;
   font-size: 14.5px;
-  background-color: #fbfdff;
+  background-color: #fbfefc;
   color: var(--ink);
   font-family: inherit;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
@@ -265,8 +309,8 @@ p.sub-title {
 .input-field:focus {
   outline: none;
   background-color: #ffffff;
-  border-color: var(--blue);
-  box-shadow: 0 0 0 4px rgba(11, 138, 216, 0.16);
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(0, 166, 79, 0.16);
 }
 
 .input-field-code {
@@ -305,9 +349,9 @@ p.sub-title {
 
 .store-info-card {
   margin-top: 16px;
-  background-color: var(--green-soft);
+  background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 55%, #eff6ff 100%);
   border: 1px solid var(--green-line);
-  border-left: 5px solid var(--green);
+  border-left: 5px solid var(--prss-green);
   border-radius: 12px;
   padding: 15px 18px;
   display: flex;
@@ -343,12 +387,12 @@ p.sub-title {
 }
 
 .store-tag i {
-  color: var(--green);
+  color: var(--prss-green);
 }
 
 .btn-reset-store {
   background: #ffffff;
-  border: 1px solid #cfdcea;
+  border: 1px solid #cbd5e1;
   color: var(--muted);
   padding: 5px 12px;
   border-radius: 999px;
@@ -381,9 +425,9 @@ p.sub-title {
 .table-wrapper {
   overflow-x: auto;
   border-radius: 14px;
-  border: 1px solid var(--blue-line);
+  border: 1px solid #bfd8ca;
   background-color: #ffffff;
-  box-shadow: 0 4px 14px rgba(10, 102, 194, 0.06);
+  box-shadow: 0 4px 14px rgba(17, 123, 61, 0.06);
 }
 
 .order-table {
@@ -393,13 +437,17 @@ p.sub-title {
   min-width: 560px;
 }
 
+.order-table thead tr {
+  background: linear-gradient(90deg, var(--prss-green) 0%, var(--green) 48%, var(--blue) 100%);
+}
+
 .order-table thead th {
-  background-color: var(--blue-dark);
+  background-color: transparent;
   color: #ffffff;
   padding: 12px 10px;
   font-weight: 700;
   text-align: center;
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  border-right: 1px solid rgba(255, 255, 255, 0.22);
   font-size: 12.5px;
   letter-spacing: 0.3px;
 }
@@ -420,11 +468,11 @@ p.sub-title {
 }
 
 .order-table tbody tr:nth-child(even) {
-  background-color: #f7fbff;
+  background-color: #f8fcf9;
 }
 
 .order-table tbody tr:hover {
-  background-color: var(--blue-soft);
+  background-color: #f0fdf4;
 }
 
 .cell-no {
@@ -448,14 +496,14 @@ p.sub-title {
 
 .table-input:focus {
   background-color: #ffffff;
-  box-shadow: inset 0 0 0 2px var(--blue);
+  box-shadow: inset 0 0 0 2px var(--green);
 }
 
 .table-input-code {
   text-align: center;
   font-family: Consolas, "Courier New", monospace;
   font-weight: bold;
-  color: var(--blue-dark);
+  color: var(--prss-green);
 }
 
 .table-input-qty {
@@ -515,7 +563,7 @@ p.sub-title {
   transform: scale(1.08);
 }
 
-/* 6. BARIS TAMBAH ITEM & RINGKASAN */
+/* 6. BARIS TAMBAH ITEM & RINGKASAN (DISESUAIKAN TEMA HIJAU-KUNING-BIRU) */
 .table-footer-bar {
   display: flex;
   justify-content: space-between;
@@ -530,22 +578,26 @@ p.sub-title {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 18px;
-  background-color: var(--blue-soft);
-  color: var(--blue-dark);
-  border: 1.5px dashed var(--blue);
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%);
+  color: var(--prss-green);
+  border: 1.5px dashed var(--prss-green);
   border-radius: 999px;
   font-size: 13px;
-  font-weight: bold;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
   font-family: inherit;
+  box-shadow: 0 3px 8px rgba(17, 123, 61, 0.08);
 }
 
 .btn-add-row:hover {
-  background-color: var(--blue);
+  background: linear-gradient(135deg, var(--prss-green) 0%, var(--green) 100%);
   color: #ffffff;
   border-style: solid;
+  border-color: var(--prss-green);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(17, 123, 61, 0.22);
 }
 
 .summary-pills {
@@ -556,16 +608,18 @@ p.sub-title {
 }
 
 .summary-pill {
-  background-color: #ffffff;
-  border: 1px solid var(--blue-line);
-  color: var(--muted);
-  padding: 8px 14px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%);
+  border: 1px solid #a7f3d0;
+  color: var(--ink);
+  padding: 8px 15px;
   border-radius: 999px;
   font-size: 13px;
+  font-weight: 600;
 }
 
 .summary-pill strong {
-  color: var(--blue-dark);
+  color: var(--prss-green);
+  font-weight: 800;
 }
 
 .keyboard-tip {
@@ -574,7 +628,7 @@ p.sub-title {
   color: var(--muted);
 }
 
-/* 7. TOMBOL SUBMIT */
+/* 7. TOMBOL UTAMA BUAT PESANAN (GRADASI KOLABORASI PRSS × FMI) */
 .order-submit-area {
   margin-top: 26px;
   padding-top: 22px;
@@ -590,14 +644,14 @@ p.sub-title {
   justify-content: center;
   gap: 10px;
   padding: 14px 36px;
-  background: linear-gradient(135deg, var(--green-dark), #00bd5a);
+  background: linear-gradient(135deg, var(--prss-green) 0%, var(--green) 48%, var(--blue) 100%);
   color: #ffffff;
-  border: none;
+  border: 1.5px solid rgba(250, 204, 21, 0.75);
   border-radius: 999px;
   font-size: 15px;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 10px 22px rgba(0, 166, 79, 0.35);
+  box-shadow: 0 10px 24px rgba(0, 150, 75, 0.32);
   transition: all 0.2s ease;
   font-family: inherit;
   min-height: 48px;
@@ -605,7 +659,7 @@ p.sub-title {
 
 .btn-submit-order:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 28px rgba(0, 166, 79, 0.45);
+  box-shadow: 0 14px 28px rgba(11, 138, 216, 0.4);
 }
 
 .btn-submit-order:active {
@@ -627,9 +681,9 @@ p.sub-title {
 }
 
 .btn-nav-action {
-  background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+  background: linear-gradient(135deg, var(--blue) 0%, var(--green) 100%);
   color: #ffffff;
-  border: 1px solid var(--blue-dark);
+  border: 1.5px solid rgba(250, 204, 21, 0.65);
   padding: 8px 16px;
   border-radius: 999px;
   font-size: 12px;
@@ -640,24 +694,25 @@ p.sub-title {
   gap: 6px;
   transition: all 0.15s ease;
   font-family: inherit;
-  box-shadow: 0 6px 14px rgba(11, 138, 216, 0.3);
+  box-shadow: 0 6px 14px rgba(11, 138, 216, 0.25);
 }
 
 .btn-nav-action:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(11, 138, 216, 0.4);
+  box-shadow: 0 8px 18px rgba(0, 166, 79, 0.35);
 }
 
 .btn-nav-secondary {
-  background: #ffffff;
-  color: var(--blue-dark);
-  border: 1.5px solid var(--blue);
+  background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%);
+  color: var(--prss-green);
+  border: 1.5px solid var(--prss-green);
   box-shadow: none;
 }
 
 .btn-nav-secondary:hover {
-  background: var(--blue-soft);
-  box-shadow: none;
+  background: var(--prss-green);
+  color: #ffffff;
+  box-shadow: 0 6px 14px rgba(17, 123, 61, 0.22);
 }
 
 .orders-toolbar {
@@ -673,24 +728,24 @@ p.sub-title {
   flex: 1;
   min-width: 220px;
   padding: 11px 16px;
-  border: 1.5px solid #cfdcea;
+  border: 1.5px solid #c8dcd0;
   border-radius: 999px;
   font-size: 13.5px;
   font-family: inherit;
   color: var(--ink);
-  background-color: #fbfdff;
+  background-color: #fbfefc;
 }
 
 .orders-search-input:focus {
   outline: none;
-  border-color: var(--blue);
-  box-shadow: 0 0 0 4px rgba(11, 138, 216, 0.16);
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(0, 166, 79, 0.16);
 }
 
 .btn-refresh-orders {
-  background-color: #ffffff;
-  border: 1.5px solid #cfdcea;
-  color: var(--ink);
+  background: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%);
+  border: 1.5px solid #86efac;
+  color: var(--prss-green);
   padding: 9px 16px;
   border-radius: 999px;
   font-size: 13px;
@@ -704,9 +759,9 @@ p.sub-title {
 }
 
 .btn-refresh-orders:hover {
-  background-color: var(--blue-soft);
-  border-color: var(--blue);
-  color: var(--blue-dark);
+  background: linear-gradient(135deg, var(--prss-green) 0%, var(--blue) 100%);
+  border-color: var(--prss-green);
+  color: #ffffff;
 }
 
 .history-table {
@@ -715,13 +770,17 @@ p.sub-title {
   font-size: 13.5px;
 }
 
+.history-table thead tr {
+  background: linear-gradient(90deg, var(--prss-green) 0%, var(--green) 48%, var(--blue) 100%);
+}
+
 .history-table thead th {
-  background-color: var(--blue-dark);
+  background-color: transparent;
   color: #ffffff;
   padding: 12px 10px;
   font-weight: 700;
   text-align: left;
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  border-right: 1px solid rgba(255, 255, 255, 0.22);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -746,20 +805,20 @@ p.sub-title {
 }
 
 .history-table tbody tr:nth-child(even) {
-  background-color: #f7fbff;
+  background-color: #f8fcf9;
 }
 
 .history-table tbody tr:hover {
-  background-color: var(--blue-soft);
+  background-color: #f0fdf4;
 }
 
 .order-no-badge {
   font-family: Consolas, "Courier New", monospace;
   font-weight: bold;
   font-size: 13px;
-  color: var(--blue-dark);
-  background-color: var(--blue-soft);
-  border: 1px solid var(--blue-line);
+  color: var(--prss-green);
+  background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%);
+  border: 1px solid #86efac;
   padding: 4px 10px;
   border-radius: 999px;
   display: inline-block;
@@ -778,9 +837,9 @@ p.sub-title {
 }
 
 .status-badge-pending {
-  background-color: var(--blue-soft);
-  color: var(--blue-dark);
-  border: 1px solid var(--blue-line);
+  background-color: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fde047;
 }
 
 .status-badge-done {
@@ -790,8 +849,8 @@ p.sub-title {
 }
 
 .btn-view-detail {
-  background-color: #ffffff;
-  color: var(--green-dark);
+  background: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%);
+  color: var(--prss-green);
   border: 1.5px solid var(--green);
   padding: 6px 13px;
   border-radius: 999px;
@@ -807,7 +866,8 @@ p.sub-title {
 }
 
 .btn-view-detail:hover {
-  background-color: var(--green);
+  background: linear-gradient(135deg, var(--prss-green) 0%, var(--blue) 100%);
+  border-color: var(--prss-green);
   color: #ffffff;
 }
 
@@ -836,37 +896,94 @@ p.sub-title {
   right: 0;
   top: -3px;
   height: 3px;
-  background: linear-gradient(90deg, var(--blue), var(--green));
+  background: linear-gradient(
+    90deg,
+    #facc15 0%,
+    var(--prss-green) 32%,
+    var(--green) 66%,
+    var(--blue) 100%
+  );
 }
 
-/* 9. RESPONSIVE MOBILE (RAMAH LAYAR HP TANPA SCROLL KANAN) */
+/* 9. RESPONSIVE MOBILE (RAMAH LAYAR HP & MOTIF BATIK TETAP TERLIHAT) */
 @media (max-width: 640px) {
   body {
-    padding: 16px 10px 72px 10px;
+    padding: 18px 10px 76px 10px;
+  }
+
+  /* Tampilkan ornamen awan batik tambahan di sudut kiri-bawah & kanan-bawah layar HP */
+  body::before {
+    content: "";
+    position: fixed;
+    left: -18px;
+    bottom: 24px;
+    width: 110px;
+    height: 145px;
+    background-image: url("/cloud-left-prss.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    opacity: 0.9;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    right: -18px;
+    bottom: 24px;
+    width: 110px;
+    height: 145px;
+    background-image: url("/cloud-right-fmi.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: right bottom;
+    opacity: 0.9;
+    z-index: 0;
+    pointer-events: none;
   }
 
   .brand-hero {
     margin: 0 auto 14px auto;
-    padding: 0 4px;
+    padding: 4px 4px 0 4px;
+  }
+
+  .brand-logos-wrap {
+    margin-bottom: 10px;
+  }
+
+  /* Awan batik kecil di samping/belakang logo pada layar HP */
+  .header-cloud {
+    width: 74px;
+  }
+
+  .header-cloud-left {
+    left: -38px;
+    top: -16px;
+  }
+
+  .header-cloud-right {
+    right: -38px;
+    top: -16px;
   }
 
   .brand-logos {
     gap: 10px;
     padding: 9px 14px;
-    border-radius: 14px;
-    margin-bottom: 10px;
+    border-radius: 15px;
   }
 
   .brand-divider {
-    height: 30px;
+    height: 28px;
   }
 
   .company-logo {
-    height: 38px;
+    height: 36px;
   }
 
   .familymart-logo {
-    height: 24px;
+    height: 23px;
   }
 
   p.sub-title {
@@ -933,10 +1050,10 @@ p.sub-title {
     grid-template-areas:
       "no nama nama action"
       "kode kode qty qty";
-    border: 1px solid var(--blue-line);
+    border: 1px solid #bfd8ca;
     border-radius: 12px;
     background-color: #ffffff !important;
-    box-shadow: 0 3px 8px rgba(10, 102, 194, 0.08);
+    box-shadow: 0 3px 8px rgba(17, 123, 61, 0.08);
     overflow: hidden;
   }
 
@@ -948,7 +1065,7 @@ p.sub-title {
 
   .cell-no {
     grid-area: no;
-    background-color: var(--blue-dark);
+    background: linear-gradient(135deg, var(--prss-green), var(--blue));
     color: #ffffff;
     font-size: 12px;
     justify-content: center;
@@ -979,7 +1096,7 @@ p.sub-title {
   .cell-kode {
     grid-area: kode;
     border-right: 1px solid #e4edf6 !important;
-    background-color: #f7fbff;
+    background-color: #f8fcf9;
     padding: 4px 8px !important;
     display: flex;
     align-items: center;
@@ -1000,13 +1117,13 @@ p.sub-title {
     font-size: 13px;
     text-align: left;
     background-color: #ffffff;
-    border: 1px solid #cfdcea;
+    border: 1px solid #c8dcd0;
     border-radius: 8px;
   }
 
   .cell-qty {
     grid-area: qty;
-    background-color: var(--blue-soft);
+    background: linear-gradient(135deg, #f0fdf4 0%, #fefce8 100%);
     padding: 4px 8px !important;
     display: flex;
     align-items: center;
@@ -1017,7 +1134,7 @@ p.sub-title {
     content: "QTY (PCS)";
     font-size: 10px;
     font-weight: bold;
-    color: var(--blue-dark);
+    color: var(--prss-green);
     letter-spacing: 0.3px;
     flex-shrink: 0;
   }
@@ -1027,7 +1144,7 @@ p.sub-title {
     font-size: 14px;
     text-align: center;
     background-color: #ffffff;
-    border: 1px solid #9fd0f7;
+    border: 1px solid #86efac;
     border-radius: 8px;
   }
 
@@ -1080,12 +1197,12 @@ p.sub-title {
   .history-table tbody tr {
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--blue-line);
+    border: 1px solid #bfd8ca;
     border-radius: 14px;
     background-color: #ffffff !important;
     padding: 12px;
     gap: 6px;
-    box-shadow: 0 3px 8px rgba(10, 102, 194, 0.08);
+    box-shadow: 0 3px 8px rgba(17, 123, 61, 0.08);
   }
 
   .history-table tbody td {
