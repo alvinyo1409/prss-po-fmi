@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Swal from "sweetalert2";
 import { supabase } from "@/lib/supabase";
 
@@ -12,8 +12,32 @@ const INITIAL_ROWS = [
   { id: "row-2", kode: "", nama: "", qty: "" },
 ];
 
+function formatTanggalOrder(isoString) {
+  if (!isoString) return "-";
+  const d = new Date(isoString);
+  if (Number.isNaN(d.getTime())) return String(isoString);
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(d);
+}
+
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 export default function HomePage() {
   const [tanggalLabel, setTanggalLabel] = useState("");
+
+  // Mode tampilan: "form" (Buat Pesanan) | "list" (Check Pesanan)
+  const [activeView, setActiveView] = useState("form");
 
   // State Data Master dari Supabase
   const [stores, setStores] = useState([]);
@@ -28,6 +52,13 @@ export default function HomePage() {
 
   // State Daftar Item Pesanan
   const [rows, setRows] = useState(INITIAL_ROWS);
+  const [submitting, setSubmitting] = useState(false);
+
+  // State Daftar Pesanan (Check Pesanan)
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [ordersError, setOrdersError] = useState("");
+  const [searchOrder, setSearchOrder] = useState("");
 
   // Ref counter ID baris & auto-fokus input baris baru saat tekan Enter
   const nextRowIdRef = useRef(3);
@@ -66,7 +97,6 @@ export default function HomePage() {
           return;
         }
 
-        // Fallback langsung via client supabase jika API route gagal
         if (supabase) {
           const [tokoRes, itemRes] = await Promise.all([
             supabase
@@ -134,25 +164,55 @@ export default function HomePage() {
     };
   }, []);
 
+  // Fungsi memuat daftar pesanan dari Supabase (Check Pesanan)
+  const loadOrders = useCallback(async () => {
+    setLoadingOrders(true);
+    setOrdersError("");
+
+    try {
+      const res = await fetch("/api/orders", { cache: "no-store" });
+      const json = await res.json();
+
+      if (res.ok && json.ok) {
+        setOrders(json.orders || []);
+        setLoadingOrders(false);
+        return;
+      }
+
+      throw new Error(json.error || "Gagal memuat daftar pesanan.");
+    } catch (err) {
+      setOrdersError(err?.message || "Gagal memuat daftar pesanan.");
+      setLoadingOrders(false);
+    }
+  }, []);
+
+  const bukaCheckPesanan = () => {
+    setActiveView("list");
+    loadOrders();
+  };
+
   // --- Handler Pilih Toko (2 Arah) ---
+  const findMatchingStore = useCallback(
+    (codeVal) => {
+      const clean = String(codeVal || "").trim().toLowerCase();
+      if (!clean) return null;
+      return (
+        stores.find((s) => {
+          const sCode = s.code.toLowerCase();
+          if (sCode === clean) return true;
+          if (/^\d+$/.test(clean) && /^\d+$/.test(sCode) && clean.length >= 3) {
+            return Number(sCode) === Number(clean);
+          }
+          return false;
+        }) || null
+      );
+    },
+    [stores]
+  );
+
   const handleKodeTokoChange = (val) => {
     setKodeToko(val);
-    const clean = val.trim().toLowerCase();
-    if (!clean) {
-      setSelectedStore(null);
-      return;
-    }
-
-    const match = stores.find((s) => {
-      const sCode = s.code.toLowerCase();
-      if (sCode === clean) return true;
-      // Dukungan pencocokan kode angka dengan/tanpa leading zero (misal 134 vs 0134)
-      if (/^\d+$/.test(clean) && /^\d+$/.test(sCode) && clean.length >= 3) {
-        return Number(sCode) === Number(clean);
-      }
-      return false;
-    });
-
+    const match = findMatchingStore(val);
     if (match) {
       setNamaToko(match.store);
       setSelectedStore(match);
@@ -268,11 +328,15 @@ export default function HomePage() {
   );
   const totalQty = validItems.reduce((acc, r) => acc + (Number(r.qty) || 0), 0);
 
-  // --- Handler Tombol Buat Pesanan ---
-  const handleBuatPesanan = (e) => {
+  // --- Handler Tombol Buat Pesanan (Simpan ke Supabase) ---
+  const handleBuatPesanan = async (e) => {
     e.preventDefault();
+    if (submitting) return;
 
-    if (!selectedStore && (!kodeToko.trim() || !namaToko.trim())) {
+    const finalKodeToko = selectedStore ? selectedStore.code : kodeToko.trim();
+    const finalNamaToko = selectedStore ? selectedStore.store : namaToko.trim();
+
+    if (!finalKodeToko || !finalNamaToko) {
       Swal.fire({
         icon: "warning",
         title: "Toko Belum Dipilih",
@@ -292,32 +356,152 @@ export default function HomePage() {
       return;
     }
 
-    const daftarHtml = validItems
+    setSubmitting(true);
+
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kode_toko: finalKodeToko,
+          nama_toko: finalNamaToko,
+          items: validItems.map((it) => ({
+            kode: it.kode.trim(),
+            nama: it.nama.trim(),
+            qty: Number(it.qty) || 0,
+          })),
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error || "Gagal menyimpan pesanan ke database.");
+      }
+
+      const savedOrder = json.order;
+
+      // Reset form setelah berhasil tersimpan agar tidak terinput ganda
+      resetToko();
+      setRows([buatBarisBaru(), buatBarisBaru()]);
+
+      const result = await Swal.fire({
+        icon: "success",
+        title: "Pesanan Berhasil Terinput!",
+        html: `
+          <div style="margin:10px 0 14px 0;padding:14px;background:#f0fdf4;border:2px dashed #117b3d;border-radius:10px;text-align:center;">
+            <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.6px;font-weight:bold;">
+              Nomor Pesanan Anda
+            </div>
+            <div style="font-size:22px;font-weight:bold;color:#0e6231;font-family:monospace;margin-top:4px;letter-spacing:0.8px;">
+              ${escapeHtml(savedOrder.no_order)}
+            </div>
+          </div>
+          <div style="text-align:left;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-size:13px;line-height:1.6;">
+            <div><strong>Toko:</strong> ${escapeHtml(savedOrder.kode_toko)} — ${escapeHtml(savedOrder.nama_toko)}</div>
+            <div><strong>Total Pesanan:</strong> ${Number(savedOrder.total_jenis_item)} Jenis Item (${Number(savedOrder.total_qty).toLocaleString("id-ID")} Pcs)</div>
+            <div><strong>Status:</strong> <span style="color:#854d0e;font-weight:bold;">${escapeHtml(savedOrder.status)}</span></div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="fa-solid fa-clipboard-check"></i> Check Pesanan',
+        cancelButtonText: "Tutup",
+        confirmButtonColor: "#117b3d",
+        cancelButtonColor: "#64748b",
+        reverseButtons: true,
+      });
+
+      if (result.isConfirmed) {
+        bukaCheckPesanan();
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Menyimpan Pesanan",
+        text: err?.message || "Terjadi kendala saat menyimpan pesanan.",
+        confirmButtonColor: "#117b3d",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // --- Handler Lihat Detail Pesanan (100% View-Only) ---
+  const handleLihatDetailPesanan = (ord) => {
+    const storeInfo = ord.store_detail || findMatchingStore(ord.kode_toko);
+    const itemsList = Array.isArray(ord.items) ? ord.items : [];
+
+    const rowsHtml = itemsList
       .map(
-        (it, i) =>
-          `<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed #e2e8f0;font-size:13px;text-align:left;">
-            <span><strong>${i + 1}.</strong> ${it.nama || it.kode}</span>
-            <span style="white-space:nowrap;font-weight:bold;color:#0e6231;">${Number(it.qty).toLocaleString("id-ID")} Pcs</span>
-          </div>`
+        (it, idx) => `
+          <tr>
+            <td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:center;color:#64748b;font-weight:bold;">${idx + 1}</td>
+            <td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;font-family:monospace;font-weight:bold;color:#0e6231;">${escapeHtml(it.kode || "-")}</td>
+            <td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:left;color:#1e293b;">${escapeHtml(it.nama || "-")}</td>
+            <td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:bold;font-family:monospace;color:#0f172a;white-space:nowrap;">${Number(it.qty || 0).toLocaleString("id-ID")} Pcs</td>
+          </tr>
+        `
       )
       .join("");
 
     Swal.fire({
-      icon: "success",
-      title: "Ringkasan Pesanan Toko",
+      title: `Detail Pesanan ${ord.no_order}`,
+      width: 640,
       html: `
-        <div style="text-align:left;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:12px;font-size:13px;">
-          <div><strong>Toko:</strong> ${selectedStore ? selectedStore.code : kodeToko} — ${selectedStore ? selectedStore.store : namaToko}</div>
-          ${selectedStore ? `<div><strong>DC / PIC:</strong> ${selectedStore.dc} / ${selectedStore.pic}</div>` : ""}
-        </div>
-        <div style="max-height:200px;overflow-y:auto;margin-bottom:12px;">${daftarHtml}</div>
-        <div style="font-size:14px;font-weight:bold;color:#0e6231;text-align:right;">
-          Total: ${validItems.length} Jenis Item (${totalQty.toLocaleString("id-ID")} Pcs)
+        <div style="text-align:left;font-size:13px;">
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #117b3d;border-radius:8px;padding:12px 14px;margin-bottom:14px;line-height:1.6;">
+            <div><strong>No. Order:</strong> <span style="font-family:monospace;font-weight:bold;color:#0e6231;">${escapeHtml(ord.no_order)}</span></div>
+            <div><strong>Tanggal Input:</strong> ${escapeHtml(formatTanggalOrder(ord.tanggal))}</div>
+            <div><strong>Toko:</strong> ${escapeHtml(ord.kode_toko)} — ${escapeHtml(ord.nama_toko)}</div>
+            ${storeInfo?.dc ? `<div><strong>DC / Tipe:</strong> ${escapeHtml(storeInfo.dc)}${storeInfo.type ? ` (${escapeHtml(storeInfo.type)})` : ""}</div>` : ""}
+            ${storeInfo?.pic ? `<div><strong>PIC Toko:</strong> ${escapeHtml(storeInfo.pic)}</div>` : ""}
+            ${storeInfo?.address ? `<div><strong>Alamat:</strong> ${escapeHtml(storeInfo.address)}</div>` : ""}
+            <div><strong>Status:</strong> <span style="background:#fef9c3;color:#854d0e;border:1px solid #fde047;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;">${escapeHtml(ord.status)}</span></div>
+          </div>
+
+          <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;max-height:260px;overflow-y:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead>
+                <tr style="background:#0e6231;color:#ffffff;">
+                  <th style="padding:8px;text-align:center;width:40px;">No</th>
+                  <th style="padding:8px;text-align:left;width:95px;">Kode</th>
+                  <th style="padding:8px;text-align:left;">Nama Item</th>
+                  <th style="padding:8px;text-align:right;width:90px;">Qty</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml || '<tr><td colspan="4" style="padding:12px;text-align:center;color:#64748b;">Tidak ada rincian item</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid #e2e8f0;font-weight:bold;color:#0e6231;">
+            <span style="font-size:11px;color:#64748b;font-weight:normal;">
+              <i class="fa-solid fa-lock"></i> Mode Baca (View-Only)
+            </span>
+            <span>Total: ${Number(ord.total_jenis_item)} Item (${Number(ord.total_qty).toLocaleString("id-ID")} Pcs)</span>
+          </div>
         </div>
       `,
-      confirmButtonText: "Oke, Mengerti",
+      confirmButtonText: "Tutup",
       confirmButtonColor: "#117b3d",
     });
+  };
+
+  // Filter pencarian di halaman Check Pesanan
+  const filteredOrders = orders.filter((ord) => {
+    const q = searchOrder.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      String(ord.no_order || "").toLowerCase().includes(q) ||
+      String(ord.kode_toko || "").toLowerCase().includes(q) ||
+      String(ord.nama_toko || "").toLowerCase().includes(q) ||
+      String(ord.status || "").toLowerCase().includes(q)
+    );
+  });
+
+  const isStatusCompleted = (st) => {
+    const clean = String(st || "").toLowerCase();
+    return clean.includes("terkirim") || clean.includes("selesai") || clean.includes("dikirim");
   };
 
   return (
@@ -328,289 +512,480 @@ export default function HomePage() {
       <h1>CV. Panen Raya Sukses Sejahtera</h1>
       <p className="sub-title">Portal Pemesanan Produk — Mitra Toko FamilyMart</p>
 
-      {/* KARTU FORMULIR UTAMA */}
-      <form className="order-card" onSubmit={handleBuatPesanan}>
+      {/* KARTU UTAMA */}
+      <div className="order-card">
         <div className="card-welcome">
           <div>
             <h2>
-              <i className="fa-solid fa-cart-shopping"></i>
-              Formulir Pemesanan Toko
+              <i
+                className={
+                  activeView === "form"
+                    ? "fa-solid fa-cart-shopping"
+                    : "fa-solid fa-clipboard-list"
+                }
+              ></i>
+              {activeView === "form"
+                ? "Formulir Pemesanan Toko"
+                : "Daftar & Status Pesanan Toko"}
             </h2>
             <p className="card-welcome-sub">
-              Selamat datang! Silakan pilih identitas toko dan daftar item yang ingin dipesan.
+              {activeView === "form"
+                ? "Selamat datang! Silakan pilih identitas toko dan daftar item yang ingin dipesan."
+                : "Daftar seluruh pesanan toko yang telah terinput (hanya baca / view-only)."}
             </p>
           </div>
-          {tanggalLabel && (
-            <span className="date-badge">
-              <i className="fa-regular fa-calendar"></i>
-              {tanggalLabel}
-            </span>
-          )}
+
+          <div className="header-actions">
+            {tanggalLabel && (
+              <span className="date-badge">
+                <i className="fa-regular fa-calendar"></i>
+                {tanggalLabel}
+              </span>
+            )}
+
+            {activeView === "form" ? (
+              <button
+                type="button"
+                className="btn-nav-action"
+                onClick={bukaCheckPesanan}
+              >
+                <i className="fa-solid fa-clipboard-check"></i>
+                Check Pesanan
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn-nav-action btn-nav-secondary"
+                onClick={() => setActiveView("form")}
+              >
+                <i className="fa-solid fa-plus"></i>
+                Buat Pesanan Baru
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* INDIKATOR KONEKSI DATABASE SUPABASE */}
-        {loadingMaster && (
-          <div
-            style={{
-              backgroundColor: "#f0fdf4",
-              border: "1px solid #bbf7d0",
-              color: "#0e6231",
-              padding: "10px 14px",
-              borderRadius: "8px",
-              fontSize: "13px",
-              marginBottom: "18px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <i className="fa-solid fa-spinner fa-spin"></i>
-            <span>Memuat database Toko &amp; Item FamilyMart dari Supabase...</span>
-          </div>
-        )}
-
-        {!loadingMaster && masterError && (
-          <div
-            style={{
-              backgroundColor: "#fef2f2",
-              border: "1px solid #fecaca",
-              color: "#b91c1c",
-              padding: "10px 14px",
-              borderRadius: "8px",
-              fontSize: "13px",
-              marginBottom: "18px",
-            }}
-          >
-            <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 6 }}></i>
-            {masterError}
-          </div>
-        )}
-
-        {/* BAGIAN 1: PILIH TOKO */}
-        <div className="section-block">
-          <div className="section-header">
-            <span className="step-badge">1</span>
-            <h3>Silakan Pilih Toko Anda</h3>
-          </div>
-          <p className="section-hint">
-            Pilih salah satu (Kode Toko atau Nama Toko), kolom lainnya akan otomatis terisi.
-          </p>
-
-          <div className="store-grid">
-            <div className="field-group">
-              <label htmlFor="inputKodeToko">Kode Toko</label>
-              <input
-                id="inputKodeToko"
-                type="text"
-                list="listKodeToko"
-                className="input-field input-field-code"
-                placeholder={loadingMaster ? "Memuat..." : "Contoh: 0463"}
-                value={kodeToko}
-                onChange={(e) => handleKodeTokoChange(e.target.value)}
-                autoComplete="off"
-              />
-            </div>
-
-            <div className="field-group">
-              <label htmlFor="inputNamaToko">Nama Toko</label>
-              <input
-                id="inputNamaToko"
-                type="text"
-                list="listNamaToko"
-                className="input-field"
-                placeholder={
-                  loadingMaster
-                    ? "Memuat daftar toko..."
-                    : `Ketik atau pilih nama toko (${stores.length} toko)...`
-                }
-                value={namaToko}
-                onChange={(e) => handleNamaTokoChange(e.target.value)}
-                autoComplete="off"
-              />
-            </div>
-          </div>
-
-          <datalist id="listKodeToko">
-            {stores.map((s) => (
-              <option key={s.code} value={s.code}>
-                {s.store}
-              </option>
-            ))}
-          </datalist>
-
-          <datalist id="listNamaToko">
-            {stores.map((s) => (
-              <option key={s.code} value={s.store}>
-                {s.code} — {s.dc}
-              </option>
-            ))}
-          </datalist>
-
-          {/* INFO DETAIL TOKO OTOMATIS */}
-          {selectedStore && (
-            <div className="store-info-card">
-              <div className="store-info-top">
-                <div className="store-tags">
-                  {selectedStore.dc && (
-                    <span className="store-tag">
-                      <i className="fa-solid fa-warehouse"></i> DC: {selectedStore.dc}
-                    </span>
-                  )}
-                  {selectedStore.type && (
-                    <span className="store-tag">
-                      <i className="fa-solid fa-tag"></i> {selectedStore.type}
-                    </span>
-                  )}
-                  {selectedStore.pic && (
-                    <span className="store-tag">
-                      <i className="fa-solid fa-user"></i> PIC: {selectedStore.pic}
-                    </span>
-                  )}
-                </div>
-                <button type="button" className="btn-reset-store" onClick={resetToko}>
-                  <i className="fa-solid fa-rotate-left"></i> Ganti Toko
-                </button>
+        {/* ============================================================ */}
+        {/* TAMPILAN 1: FORMULIR PEMESANAN TOKO                          */}
+        {/* ============================================================ */}
+        {activeView === "form" && (
+          <form onSubmit={handleBuatPesanan}>
+            {loadingMaster && (
+              <div
+                style={{
+                  backgroundColor: "#f0fdf4",
+                  border: "1px solid #bbf7d0",
+                  color: "#0e6231",
+                  padding: "10px 14px",
+                  borderRadius: "8px",
+                  fontSize: "13px",
+                  marginBottom: "18px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <i className="fa-solid fa-spinner fa-spin"></i>
+                <span>Memuat database Toko &amp; Item FamilyMart dari Supabase...</span>
               </div>
-              {selectedStore.address && (
-                <div className="store-address">
-                  <i
-                    className="fa-solid fa-location-dot"
-                    style={{ color: "#117b3d", marginTop: 2 }}
-                  ></i>
-                  <span>{selectedStore.address}</span>
+            )}
+
+            {!loadingMaster && masterError && (
+              <div
+                style={{
+                  backgroundColor: "#fef2f2",
+                  border: "1px solid #fecaca",
+                  color: "#b91c1c",
+                  padding: "10px 14px",
+                  borderRadius: "8px",
+                  fontSize: "13px",
+                  marginBottom: "18px",
+                }}
+              >
+                <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 6 }}></i>
+                {masterError}
+              </div>
+            )}
+
+            {/* BAGIAN 1: PILIH TOKO */}
+            <div className="section-block">
+              <div className="section-header">
+                <span className="step-badge">1</span>
+                <h3>Silakan Pilih Toko Anda</h3>
+              </div>
+              <p className="section-hint">
+                Pilih salah satu (Kode Toko atau Nama Toko), kolom lainnya akan otomatis terisi.
+              </p>
+
+              <div className="store-grid">
+                <div className="field-group">
+                  <label htmlFor="inputKodeToko">Kode Toko</label>
+                  <input
+                    id="inputKodeToko"
+                    type="text"
+                    list="listKodeToko"
+                    className="input-field input-field-code"
+                    placeholder={loadingMaster ? "Memuat..." : "Contoh: 0463"}
+                    value={kodeToko}
+                    onChange={(e) => handleKodeTokoChange(e.target.value)}
+                    autoComplete="off"
+                  />
+                </div>
+
+                <div className="field-group">
+                  <label htmlFor="inputNamaToko">Nama Toko</label>
+                  <input
+                    id="inputNamaToko"
+                    type="text"
+                    list="listNamaToko"
+                    className="input-field"
+                    placeholder={
+                      loadingMaster
+                        ? "Memuat daftar toko..."
+                        : `Ketik atau pilih nama toko (${stores.length} toko)...`
+                    }
+                    value={namaToko}
+                    onChange={(e) => handleNamaTokoChange(e.target.value)}
+                    autoComplete="off"
+                  />
+                </div>
+              </div>
+
+              <datalist id="listKodeToko">
+                {stores.map((s) => (
+                  <option key={s.code} value={s.code}>
+                    {s.store}
+                  </option>
+                ))}
+              </datalist>
+
+              <datalist id="listNamaToko">
+                {stores.map((s) => (
+                  <option key={s.code} value={s.store}>
+                    {s.code} — {s.dc}
+                  </option>
+                ))}
+              </datalist>
+
+              {/* INFO DETAIL TOKO OTOMATIS */}
+              {selectedStore && (
+                <div className="store-info-card">
+                  <div className="store-info-top">
+                    <div className="store-tags">
+                      {selectedStore.dc && (
+                        <span className="store-tag">
+                          <i className="fa-solid fa-warehouse"></i> DC: {selectedStore.dc}
+                        </span>
+                      )}
+                      {selectedStore.type && (
+                        <span className="store-tag">
+                          <i className="fa-solid fa-tag"></i> {selectedStore.type}
+                        </span>
+                      )}
+                      {selectedStore.pic && (
+                        <span className="store-tag">
+                          <i className="fa-solid fa-user"></i> PIC: {selectedStore.pic}
+                        </span>
+                      )}
+                    </div>
+                    <button type="button" className="btn-reset-store" onClick={resetToko}>
+                      <i className="fa-solid fa-rotate-left"></i> Ganti Toko
+                    </button>
+                  </div>
+                  {selectedStore.address && (
+                    <div className="store-address">
+                      <i
+                        className="fa-solid fa-location-dot"
+                        style={{ color: "#117b3d", marginTop: 2 }}
+                      ></i>
+                      <span>{selectedStore.address}</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
 
-        {/* BAGIAN 2: PILIH ITEM PESANAN */}
-        <div className="section-block">
-          <div className="section-header">
-            <span className="step-badge">2</span>
-            <h3>Silakan Pilih Item Pesanan Anda</h3>
-          </div>
-          <p className="section-hint">
-            Kode Item dan Nama Item saling terhubung otomatis. Isi jumlah pesanan pada kolom Qty.
-          </p>
-
-          <div className="table-wrapper">
-            <table className="order-table">
-              <thead>
-                <tr>
-                  <th style={{ width: "48px" }}>No</th>
-                  <th style={{ width: "130px" }}>Kode</th>
-                  <th>Nama Item</th>
-                  <th style={{ width: "115px" }}>Qty (Pcs)</th>
-                  <th style={{ width: "56px" }}>Hapus</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row, idx) => (
-                  <tr key={row.id}>
-                    <td className="cell-no">{idx + 1}</td>
-                    <td className="cell-kode">
-                      <input
-                        type="text"
-                        list="listKodeItem"
-                        className="table-input table-input-code"
-                        placeholder="Kode..."
-                        value={row.kode}
-                        onChange={(e) => handleKodeItemChange(idx, e.target.value)}
-                        autoComplete="off"
-                      />
-                    </td>
-                    <td className="cell-nama">
-                      <input
-                        ref={(el) => {
-                          namaInputRefs.current[row.id] = el;
-                        }}
-                        type="text"
-                        list="listNamaItem"
-                        className="table-input"
-                        placeholder="Pilih atau ketik nama item..."
-                        value={row.nama}
-                        onChange={(e) => handleNamaItemChange(idx, e.target.value)}
-                        autoComplete="off"
-                      />
-                    </td>
-                    <td className="cell-qty">
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        className="table-input table-input-qty"
-                        placeholder="0"
-                        value={row.qty}
-                        onChange={(e) => handleQtyChange(idx, e.target.value)}
-                        onKeyDown={(e) => handleQtyKeyDown(e, idx)}
-                      />
-                    </td>
-                    <td className="cell-action">
-                      <button
-                        type="button"
-                        className="btn-remove-row"
-                        title="Hapus baris ini"
-                        onClick={() => hapusBaris(idx)}
-                      >
-                        <i className="fa-solid fa-minus"></i>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <datalist id="listKodeItem">
-            {items.map((it) => (
-              <option key={`${it.kode}-${it.barcode}`} value={it.kode}>
-                {it.nama}
-              </option>
-            ))}
-          </datalist>
-
-          <datalist id="listNamaItem">
-            {items.map((it) => (
-              <option key={`${it.kode}-${it.barcode}`} value={it.nama}>
-                Kode: {it.kode}
-              </option>
-            ))}
-          </datalist>
-
-          <div className="table-footer-bar">
-            <button
-              type="button"
-              className="btn-add-row"
-              onClick={() => tambahBaris(true)}
-            >
-              <i className="fa-solid fa-plus"></i> Tambah Baris Item
-            </button>
-
-            <div className="summary-pills">
-              <div className="summary-pill">
-                Jenis Item: <strong>{validItems.length}</strong>
+            {/* BAGIAN 2: PILIH ITEM PESANAN */}
+            <div className="section-block">
+              <div className="section-header">
+                <span className="step-badge">2</span>
+                <h3>Silakan Pilih Item Pesanan Anda</h3>
               </div>
-              <div className="summary-pill">
-                Total Qty: <strong>{totalQty.toLocaleString("id-ID")} Pcs</strong>
+              <p className="section-hint">
+                Kode Item dan Nama Item saling terhubung otomatis. Isi jumlah pesanan pada kolom Qty.
+              </p>
+
+              <div className="table-wrapper">
+                <table className="order-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "48px" }}>No</th>
+                      <th style={{ width: "130px" }}>Kode</th>
+                      <th>Nama Item</th>
+                      <th style={{ width: "115px" }}>Qty (Pcs)</th>
+                      <th style={{ width: "56px" }}>Hapus</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((row, idx) => (
+                      <tr key={row.id}>
+                        <td className="cell-no">{idx + 1}</td>
+                        <td className="cell-kode">
+                          <input
+                            type="text"
+                            list="listKodeItem"
+                            className="table-input table-input-code"
+                            placeholder="Kode..."
+                            value={row.kode}
+                            onChange={(e) => handleKodeItemChange(idx, e.target.value)}
+                            autoComplete="off"
+                          />
+                        </td>
+                        <td className="cell-nama">
+                          <input
+                            ref={(el) => {
+                              namaInputRefs.current[row.id] = el;
+                            }}
+                            type="text"
+                            list="listNamaItem"
+                            className="table-input"
+                            placeholder="Pilih atau ketik nama item..."
+                            value={row.nama}
+                            onChange={(e) => handleNamaItemChange(idx, e.target.value)}
+                            autoComplete="off"
+                          />
+                        </td>
+                        <td className="cell-qty">
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            min="0"
+                            className="table-input table-input-qty"
+                            placeholder="0"
+                            value={row.qty}
+                            onChange={(e) => handleQtyChange(idx, e.target.value)}
+                            onKeyDown={(e) => handleQtyKeyDown(e, idx)}
+                          />
+                        </td>
+                        <td className="cell-action">
+                          <button
+                            type="button"
+                            className="btn-remove-row"
+                            title="Hapus baris ini"
+                            onClick={() => hapusBaris(idx)}
+                          >
+                            <i className="fa-solid fa-minus"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <datalist id="listKodeItem">
+                {items.map((it) => (
+                  <option key={`${it.kode}-${it.barcode}`} value={it.kode}>
+                    {it.nama}
+                  </option>
+                ))}
+              </datalist>
+
+              <datalist id="listNamaItem">
+                {items.map((it) => (
+                  <option key={`${it.kode}-${it.barcode}`} value={it.nama}>
+                    Kode: {it.kode}
+                  </option>
+                ))}
+              </datalist>
+
+              <div className="table-footer-bar">
+                <button
+                  type="button"
+                  className="btn-add-row"
+                  onClick={() => tambahBaris(true)}
+                >
+                  <i className="fa-solid fa-plus"></i> Tambah Baris Item
+                </button>
+
+                <div className="summary-pills">
+                  <div className="summary-pill">
+                    Jenis Item: <strong>{validItems.length}</strong>
+                  </div>
+                  <div className="summary-pill">
+                    Total Qty: <strong>{totalQty.toLocaleString("id-ID")} Pcs</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="keyboard-tip">
+                <i
+                  className="fa-regular fa-lightbulb"
+                  style={{ color: "#117b3d", marginRight: 6 }}
+                ></i>
+                Tips: Klik <strong>Tambah Baris Item</strong> atau tekan tombol{" "}
+                <strong>Enter</strong> pada kolom Qty untuk menambah baris baru.
               </div>
             </div>
-          </div>
 
-          <div className="keyboard-tip">
-            <i className="fa-regular fa-lightbulb" style={{ color: "#117b3d", marginRight: 6 }}></i>
-            Tips: Klik <strong>Tambah Baris Item</strong> atau tekan tombol <strong>Enter</strong> pada kolom Qty untuk menambah baris baru.
-          </div>
-        </div>
+            {/* BAGIAN 3: TOMBOL BUAT PESANAN */}
+            <div className="order-submit-area">
+              <button type="submit" className="btn-submit-order" disabled={submitting}>
+                {submitting ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    Menyimpan Pesanan...
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-paper-plane"></i>
+                    Buat Pesanan
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        )}
 
-        {/* BAGIAN 3: TOMBOL BUAT PESANAN */}
-        <div className="order-submit-area">
-          <button type="submit" className="btn-submit-order">
-            <i className="fa-solid fa-paper-plane"></i>
-            Buat Pesanan
-          </button>
-        </div>
-      </form>
+        {/* ============================================================ */}
+        {/* TAMPILAN 2: CHECK PESANAN (DAFTAR PESANAN VIEW-ONLY)         */}
+        {/* ============================================================ */}
+        {activeView === "list" && (
+          <div>
+            <div className="orders-toolbar">
+              <input
+                type="text"
+                className="orders-search-input"
+                placeholder="Cari No. Order, Kode Toko, atau Nama Toko..."
+                value={searchOrder}
+                onChange={(e) => setSearchOrder(e.target.value)}
+              />
+              <button
+                type="button"
+                className="btn-refresh-orders"
+                onClick={loadOrders}
+                disabled={loadingOrders}
+              >
+                <i
+                  className={`fa-solid fa-arrows-rotate ${loadingOrders ? "fa-spin" : ""}`}
+                ></i>
+                Refresh
+              </button>
+            </div>
+
+            {ordersError && (
+              <div
+                style={{
+                  backgroundColor: "#fef2f2",
+                  border: "1px solid #fecaca",
+                  color: "#b91c1c",
+                  padding: "10px 14px",
+                  borderRadius: "8px",
+                  fontSize: "13px",
+                  marginBottom: "14px",
+                }}
+              >
+                <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 6 }}></i>
+                {ordersError}
+              </div>
+            )}
+
+            <div className="table-wrapper">
+              <table className="history-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: "155px" }}>No. Order</th>
+                    <th style={{ width: "145px" }}>Tanggal</th>
+                    <th style={{ width: "95px" }}>Kode Toko</th>
+                    <th>Nama Toko</th>
+                    <th style={{ width: "225px" }}>Status</th>
+                    <th style={{ width: "115px" }}>Rincian</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadingOrders ? (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        style={{
+                          padding: "28px",
+                          textAlign: "center",
+                          color: "#64748b",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: 8 }}></i>
+                        Memuat daftar pesanan...
+                      </td>
+                    </tr>
+                  ) : filteredOrders.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        style={{
+                          padding: "28px",
+                          textAlign: "center",
+                          color: "#64748b",
+                          justifyContent: "center",
+                        }}
+                      >
+                        Belum ada data pesanan yang ditemukan.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredOrders.map((ord) => (
+                      <tr key={ord.id || ord.no_order}>
+                        <td data-label="No. Order">
+                          <span className="order-no-badge">{ord.no_order}</span>
+                        </td>
+                        <td data-label="Tanggal" style={{ fontSize: "12px", color: "#475569" }}>
+                          {formatTanggalOrder(ord.tanggal)}
+                        </td>
+                        <td
+                          data-label="Kode Toko"
+                          style={{ fontFamily: "monospace", fontWeight: "bold" }}
+                        >
+                          {ord.kode_toko}
+                        </td>
+                        <td data-label="Nama Toko" style={{ fontWeight: 600 }}>
+                          {ord.nama_toko}
+                        </td>
+                        <td data-label="Status">
+                          <span
+                            className={`status-badge ${
+                              isStatusCompleted(ord.status)
+                                ? "status-badge-done"
+                                : "status-badge-pending"
+                            }`}
+                          >
+                            <i
+                              className={
+                                isStatusCompleted(ord.status)
+                                  ? "fa-solid fa-circle-check"
+                                  : "fa-regular fa-clock"
+                              }
+                            ></i>
+                            {ord.status}
+                          </span>
+                        </td>
+                        <td data-label="Rincian">
+                          <button
+                            type="button"
+                            className="btn-view-detail"
+                            onClick={() => handleLihatDetailPesanan(ord)}
+                          >
+                            <i className="fa-regular fa-eye"></i> Lihat Detail
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* FOOTER */}
       <div className="app-footer">
