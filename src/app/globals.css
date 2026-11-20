@@ -58,7 +58,7 @@ a {
   text-decoration: none;
 }
 
-/* HEADER TRANSPARAN DENGAN AWAN BATIK KECIL DI SAMPING & BELAKANG LOGO */
+/* HEADER LOGO & BRAND */
 .brand-hero {
   position: relative;
   margin: 0 auto 22px auto;
@@ -75,26 +75,6 @@ a {
   justify-content: center;
   margin-bottom: 12px;
   z-index: 1;
-}
-
-.header-cloud {
-  position: absolute;
-  width: 116px;
-  height: auto;
-  pointer-events: none;
-  user-select: none;
-  z-index: 0;
-  filter: drop-shadow(0 8px 16px rgba(5, 18, 34, 0.34));
-}
-
-.header-cloud-left {
-  left: -82px;
-  top: -18px;
-}
-
-.header-cloud-right {
-  right: -82px;
-  top: -18px;
 }
 
 .brand-logos {
@@ -923,39 +903,6 @@ p.sub-title {
     padding: 18px 10px 76px 10px;
   }
 
-  /* Tampilkan ornamen awan batik tambahan di sudut kiri-bawah & kanan-bawah layar HP */
-  body::before {
-    content: "";
-    position: fixed;
-    left: -18px;
-    bottom: 24px;
-    width: 110px;
-    height: 145px;
-    background-image: url("/cloud-left-prss.png?v=2");
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: left bottom;
-    opacity: 0.9;
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  body::after {
-    content: "";
-    position: fixed;
-    right: -18px;
-    bottom: 24px;
-    width: 110px;
-    height: 145px;
-    background-image: url("/cloud-right-fmi.png?v=2");
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: right bottom;
-    opacity: 0.9;
-    z-index: 0;
-    pointer-events: none;
-  }
-
   .brand-hero {
     margin: 0 auto 14px auto;
     padding: 4px 4px 0 4px;
@@ -963,21 +910,6 @@ p.sub-title {
 
   .brand-logos-wrap {
     margin-bottom: 10px;
-  }
-
-  /* Awan batik kecil di samping/belakang logo pada layar HP */
-  .header-cloud {
-    width: 74px;
-  }
-
-  .header-cloud-left {
-    left: -38px;
-    top: -16px;
-  }
-
-  .header-cloud-right {
-    right: -38px;
-    top: -16px;
   }
 
   .brand-logos {

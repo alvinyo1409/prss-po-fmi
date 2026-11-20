@@ -688,16 +688,9 @@ export default function HomePage() {
 
   return (
     <>
-      {/* HEADER LOGO & BRAND DENGAN ORNAMEN AWAN BATIK MEGA MENDUNG */}
+      {/* HEADER LOGO & BRAND */}
       <div className="brand-hero">
         <div className="brand-logos-wrap">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/cloud-left-prss.png?v=2"
-            alt=""
-            aria-hidden="true"
-            className="header-cloud header-cloud-left"
-          />
           <div className="brand-logos">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -709,13 +702,6 @@ export default function HomePage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/familymart-logo.png" alt="Logo FamilyMart" className="familymart-logo" />
           </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/cloud-right-fmi.png?v=2"
-            alt=""
-            aria-hidden="true"
-            className="header-cloud header-cloud-right"
-          />
         </div>
         <h1>CV. Panen Raya Sukses Sejahtera</h1>
         <p className="sub-title">Portal Pemesanan Produk — Mitra Toko FamilyMart</p>
