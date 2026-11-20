@@ -34,7 +34,7 @@ body {
 body {
   font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   background-color: #f6fcf9;
-  background-image: url("/bg-megamendung-fmi.jpg");
+  background-image: url("/bg-megamendung-fmi.jpg?v=2");
   background-size: cover;
   background-position: center bottom;
   background-repeat: no-repeat;
@@ -919,7 +919,7 @@ p.sub-title {
     bottom: 24px;
     width: 110px;
     height: 145px;
-    background-image: url("/cloud-left-prss.png");
+    background-image: url("/cloud-left-prss.png?v=2");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: left bottom;
@@ -935,7 +935,7 @@ p.sub-title {
     bottom: 24px;
     width: 110px;
     height: 145px;
-    background-image: url("/cloud-right-fmi.png");
+    background-image: url("/cloud-right-fmi.png?v=2");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: right bottom;

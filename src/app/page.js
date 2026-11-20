@@ -693,7 +693,7 @@ export default function HomePage() {
         <div className="brand-logos-wrap">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/cloud-left-prss.png"
+            src="/cloud-left-prss.png?v=2"
             alt=""
             aria-hidden="true"
             className="header-cloud header-cloud-left"
@@ -711,7 +711,7 @@ export default function HomePage() {
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/cloud-right-fmi.png"
+            src="/cloud-right-fmi.png?v=2"
             alt=""
             aria-hidden="true"
             className="header-cloud header-cloud-right"
