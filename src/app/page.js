@@ -692,10 +692,17 @@ export default function HomePage() {
   return (
     <>
       {/* HEADER LOGO & BRAND */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={LOGO_URL} alt="Logo Panen Raya" className="company-logo" />
-      <h1>CV. Panen Raya Sukses Sejahtera</h1>
-      <p className="sub-title">Portal Pemesanan Produk — Mitra Toko FamilyMart</p>
+      <div className="brand-hero">
+        <div className="brand-logos">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={LOGO_URL} alt="Logo Panen Raya" className="company-logo" />
+          <span className="brand-divider" aria-hidden="true"></span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/familymart-logo.png" alt="Logo FamilyMart" className="familymart-logo" />
+        </div>
+        <h1>CV. Panen Raya Sukses Sejahtera</h1>
+        <p className="sub-title">Portal Pemesanan Produk — Mitra Toko FamilyMart</p>
+      </div>
 
       {/* KARTU UTAMA */}
       <div className="order-card">
