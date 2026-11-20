@@ -7,11 +7,16 @@ body {
   max-width: 100vw;
 }
 
-/* 1. LAYOUT UTAMA & BACKGROUND (TEMA PUTIH - HIJAU - KUNING FAMILYMART) */
+/* 1. LAYOUT UTAMA & BACKGROUND (TEMA PUTIH - BIRU - HIJAU FAMILYMART, GAYA ANAK MUDA) */
 body {
   font-family: Arial, sans-serif;
-  background-color: #f3faf4;
-  background-image: linear-gradient(180deg, #f3faf4 0%, #ffffff 50%, #fffbe6 100%);
+  background-color: #f4f9ff;
+  background-image:
+    radial-gradient(circle at 6% 34%, rgba(0, 166, 79, 0.16) 0, transparent 26%),
+    radial-gradient(circle at 96% 66%, rgba(11, 138, 216, 0.18) 0, transparent 30%),
+    radial-gradient(rgba(11, 138, 216, 0.18) 1.6px, transparent 1.8px),
+    linear-gradient(180deg, #eef6ff 0%, #ffffff 52%, #eefaf3 100%);
+  background-size: auto, auto, 26px 26px, auto;
   background-attachment: fixed;
   margin: 0;
   padding: 36px 20px 80px 20px;
@@ -20,18 +25,59 @@ body {
   color: #2d3748;
 }
 
+/* Pita diagonal biru-hijau (terinspirasi desain kemasan FamilyMart) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 60%,
+    rgba(11, 138, 216, 0.09) 60%,
+    rgba(11, 138, 216, 0.09) 76%,
+    rgba(0, 166, 79, 0.1) 76%,
+    rgba(0, 166, 79, 0.1) 88%,
+    transparent 88%
+  );
+}
+
 a {
   color: inherit;
   text-decoration: none;
 }
 
-/* BANNER HEADER HIJAU + GARIS KUNING (FULL-WIDTH) */
+/* BANNER HEADER BIRU-HIJAU DENGAN POLA DIAGONAL (FULL-WIDTH) */
 .brand-hero {
+  position: relative;
   margin: -36px -20px 0 -20px;
-  padding: 30px 20px 70px 20px;
-  background: linear-gradient(135deg, #0b5a2b 0%, #12803d 55%, #16a34a 100%);
-  border-bottom: 8px solid #facc15;
-  box-shadow: 0 6px 18px rgba(14, 98, 49, 0.28);
+  padding: 30px 20px 74px 20px;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08) 0,
+      rgba(255, 255, 255, 0.08) 14px,
+      transparent 14px,
+      transparent 28px
+    ),
+    radial-gradient(circle at 88% 18%, rgba(255, 255, 255, 0.22) 0, transparent 38%),
+    radial-gradient(circle at 8% 90%, rgba(255, 255, 255, 0.14) 0, transparent 32%),
+    linear-gradient(120deg, #0a66c2 0%, #0b8ad8 38%, #00a64f 100%);
+  box-shadow: 0 8px 22px rgba(11, 111, 208, 0.3);
+  overflow: hidden;
+}
+
+/* Garis aksen gradasi putih - biru muda - hijau di bawah banner */
+.brand-hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 8px;
+  background: linear-gradient(90deg, #ffffff 0%, #8fd3ff 35%, #00a64f 100%);
 }
 
 .brand-logos {
@@ -74,7 +120,7 @@ h1 {
 }
 
 p.sub-title {
-  color: #fef9c3;
+  color: #e0f2fe;
   font-size: 15px;
   font-weight: 600;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
@@ -91,7 +137,7 @@ p.sub-title {
   margin: -42px auto 30px auto;
   position: relative;
   z-index: 1;
-  box-shadow: 0 12px 32px rgba(14, 98, 49, 0.22);
+  box-shadow: 0 12px 32px rgba(11, 111, 208, 0.22);
   text-align: left;
   border-top: 6px solid #0e6231;
 }
@@ -747,16 +793,15 @@ p.sub-title {
   bottom: 0;
   left: 0;
   width: 100%;
-  background-color: rgba(14, 98, 49, 0.96);
-  color: #f0fdf4;
+  background: linear-gradient(90deg, #0a66c2 0%, #0b8ad8 50%, #00a64f 100%);
+  color: #f0f9ff;
   padding: 8px 16px;
   font-size: 11px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 999;
-  backdrop-filter: blur(4px);
-  border-top: 3px solid #facc15;
+  border-top: 3px solid #ffffff;
 }
 
 /* 9. RESPONSIVE MOBILE (RAMAH LAYAR HP TANPA SCROLL KANAN) */
