@@ -713,11 +713,11 @@ export default function HomePage() {
                 ? "Formulir Pemesanan Toko"
                 : "Daftar & Status Pesanan Toko"}
             </h2>
-            <p className="card-welcome-sub">
-              {activeView === "form"
-                ? "Selamat datang! Silakan pilih identitas toko dan daftar item yang ingin dipesan."
-                : "Daftar seluruh pesanan toko yang telah terinput (hanya baca / view-only)."}
-            </p>
+            {activeView === "form" && (
+              <p className="card-welcome-sub">
+                Selamat datang! Silakan pilih identitas toko dan daftar item yang ingin dipesan.
+              </p>
+            )}
           </div>
 
           <div className="header-actions">
