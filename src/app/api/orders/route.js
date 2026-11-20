@@ -7,6 +7,15 @@ function normalizeCode(val) {
   return String(val || "").trim().toLowerCase();
 }
 
+// Deteksi pola injeksi script / function / SQL berbahaya
+const INJECTION_PATTERN =
+  /(<\s*\/?\s*script|javascript\s*:|on\w+\s*=|\bfunction\s*\(|=>|\beval\s*\(|\bsetTimeout\s*\(|\bsetInterval\s*\(|\bFunction\s*\(|\bdocument\.|\bwindow\.|\balert\s*\(|\bSELECT\b.+\bFROM\b|\bDROP\s+TABLE\b|\bUNION\s+SELECT\b|\bINSERT\s+INTO\b|\bDELETE\s+FROM\b|[<>{};`$\\])/i;
+
+function hasMaliciousInput(val) {
+  if (val === null || val === undefined) return false;
+  return INJECTION_PATTERN.test(String(val));
+}
+
 export async function GET() {
   try {
     const db = process.env.SUPABASE_SERVICE_ROLE_KEY ? getSupabaseAdmin() : supabase;
@@ -104,43 +113,186 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const kodeToko = String(body.kode_toko || "").trim();
-    const namaToko = String(body.nama_toko || "").trim();
+    const kodeTokoInput = String(body.kode_toko || "").trim();
+    const namaTokoInput = String(body.nama_toko || "").trim();
     const rawItems = Array.isArray(body.items) ? body.items : [];
 
-    if (!kodeToko || !namaToko) {
+    // 1. Proteksi Keamanan Anti-Injeksi Function / Script
+    if (hasMaliciousInput(kodeTokoInput) || hasMaliciousInput(namaTokoInput)) {
       return NextResponse.json(
-        { ok: false, error: "Kode Toko dan Nama Toko wajib dipilih." },
+        {
+          ok: false,
+          error:
+            "Terdeteksi karakter atau potongan function/script tidak sah pada input Toko.",
+        },
         { status: 400 }
       );
     }
 
-    const cleanItems = rawItems
-      .map((it) => ({
-        kode: String(it.kode || "").trim(),
-        nama: String(it.nama || "").trim(),
-        qty: Number(it.qty) || 0,
-      }))
-      .filter((it) => (it.kode !== "" || it.nama !== "") && it.qty > 0);
+    for (const it of rawItems) {
+      if (
+        hasMaliciousInput(it?.kode) ||
+        hasMaliciousInput(it?.nama) ||
+        hasMaliciousInput(it?.qty)
+      ) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Terdeteksi karakter atau potongan function/script tidak sah pada baris Item.",
+          },
+          { status: 400 }
+        );
+      }
+    }
 
-    if (cleanItems.length === 0) {
+    if (!kodeTokoInput || !namaTokoInput) {
       return NextResponse.json(
-        { ok: false, error: "Minimal harus ada 1 item pesanan dengan Qty lebih dari 0." },
+        { ok: false, error: "Kode Toko dan Nama Toko wajib dipilih dari database." },
         { status: 400 }
       );
     }
 
-    const totalJenisItem = cleanItems.length;
-    const totalQty = cleanItems.reduce((sum, it) => sum + it.qty, 0);
+    // 2. Ambil Master Toko & Master Item resmi dari Supabase untuk validasi Whitelist
+    const [tokoRes, itemRes] = await Promise.all([
+      db
+        .from("master_toko_fmi")
+        .select("code, store, status"),
+      db
+        .from("master_item_fmi")
+        .select("article, barcode, article_name, status"),
+    ]);
 
-    // Insert ke tabel pesanan_fmi (no_order otomatis di-generate oleh sequence PostgreSQL agar tidak tabrakan)
+    if (tokoRes.error || itemRes.error) {
+      return NextResponse.json(
+        { ok: false, error: "Gagal memverifikasi database master Supabase." },
+        { status: 500 }
+      );
+    }
+
+    // Verifikasi Toko wajib terdaftar di master_toko_fmi
+    const cleanKodeToko = kodeTokoInput.toLowerCase();
+    const cleanNamaToko = namaTokoInput.toLowerCase();
+
+    const matchedStore = (tokoRes.data || []).find((s) => {
+      const sCode = String(s.code || "").trim().toLowerCase();
+      const sStore = String(s.store || "").trim().toLowerCase();
+      const codeMatch =
+        sCode === cleanKodeToko ||
+        (/^\d+$/.test(cleanKodeToko) &&
+          /^\d+$/.test(sCode) &&
+          Number(sCode) === Number(cleanKodeToko));
+      return codeMatch && sStore === cleanNamaToko;
+    });
+
+    if (!matchedStore) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "Toko yang diinput tidak terdaftar di database Supabase. Wajib memilih dari daftar rekomendasi.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Siapkan daftar item Active resmi dari master_item_fmi
+    const activeMasterItems = (itemRes.data || [])
+      .filter((it) => {
+        const st = String(it.status || "Active").trim().toLowerCase();
+        return st === "active" || st === "aktif";
+      })
+      .map((it) => {
+        const rawArticle = String(it.article || "").trim();
+        const rawBarcode = String(it.barcode || "").trim();
+        const displayKode =
+          !rawArticle || rawArticle.toUpperCase() === "TBC" ? rawBarcode : rawArticle;
+        return {
+          kode: displayKode,
+          article: rawArticle,
+          barcode: rawBarcode,
+          nama: String(it.article_name || "").trim(),
+        };
+      });
+
+    // Verifikasi setiap baris item wajib cocok dengan master_item_fmi dan Qty berupa bilangan bulat positif
+    const verifiedItems = [];
+
+    for (let i = 0; i < rawItems.length; i += 1) {
+      const row = rawItems[i];
+      const k = String(row?.kode || "").trim().toLowerCase();
+      const n = String(row?.nama || "").trim().toLowerCase();
+      const qStr = String(row?.qty ?? "").trim();
+
+      if (!k && !n && (!qStr || qStr === "0")) {
+        continue;
+      }
+
+      if (!/^\d+$/.test(qStr)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: `Baris item ke-${i + 1}: Qty harus berupa angka bulat positif yang valid.`,
+          },
+          { status: 400 }
+        );
+      }
+
+      const qtyNum = Number(qStr);
+      if (!Number.isInteger(qtyNum) || qtyNum <= 0 || qtyNum > 99999) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: `Baris item ke-${i + 1}: Qty harus bernilai antara 1 hingga 99.999 Pcs.`,
+          },
+          { status: 400 }
+        );
+      }
+
+      const matchedItem = activeMasterItems.find((m) => {
+        const codeMatches =
+          m.kode.toLowerCase() === k ||
+          (m.barcode && m.barcode.toLowerCase() === k) ||
+          (m.article && m.article.toLowerCase() !== "tbc" && m.article.toLowerCase() === k);
+        const nameMatches = m.nama.toLowerCase() === n;
+        return codeMatches && nameMatches;
+      });
+
+      if (!matchedItem) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: `Baris item ke-${i + 1} (${row?.kode || ""} ${row?.nama || ""}) tidak terdaftar di database Supabase. Wajib pilih dari daftar rekomendasi.`,
+          },
+          { status: 400 }
+        );
+      }
+
+      verifiedItems.push({
+        kode: matchedItem.kode,
+        nama: matchedItem.nama,
+        qty: qtyNum,
+      });
+    }
+
+    if (verifiedItems.length === 0) {
+      return NextResponse.json(
+        { ok: false, error: "Minimal harus ada 1 item pesanan yang valid dengan Qty lebih dari 0." },
+        { status: 400 }
+      );
+    }
+
+    const totalJenisItem = verifiedItems.length;
+    const totalQty = verifiedItems.reduce((sum, it) => sum + it.qty, 0);
+
+    // 3. Simpan menggunakan nilai resmi dari master Supabase
     const { data, error } = await db
       .from("pesanan_fmi")
       .insert([
         {
-          kode_toko: kodeToko,
-          nama_toko: namaToko,
-          items: cleanItems,
+          kode_toko: String(matchedStore.code).trim(),
+          nama_toko: String(matchedStore.store).trim(),
+          items: verifiedItems,
           total_jenis_item: totalJenisItem,
           total_qty: totalQty,
           status: "Pesanan Diterima, Menunggu Pengiriman",

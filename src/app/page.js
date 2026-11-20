@@ -12,6 +12,36 @@ const INITIAL_ROWS = [
   { id: "row-2", kode: "", nama: "", qty: "" },
 ];
 
+// Pola deteksi upaya injeksi function / script / SQL berbahaya
+const MALICIOUS_INPUT_REGEX =
+  /(<\s*\/?\s*script|javascript\s*:|on\w+\s*=|\bfunction\s*\(|=>|\beval\s*\(|\bsetTimeout\s*\(|\bsetInterval\s*\(|\bFunction\s*\(|\bdocument\.|\bwindow\.|\balert\s*\(|\bSELECT\b.+\bFROM\b|\bDROP\s+TABLE\b|\bUNION\s+SELECT\b|\bINSERT\s+INTO\b|\bDELETE\s+FROM\b|[<>{};`$\\])/i;
+
+function isMaliciousString(val) {
+  if (!val) return false;
+  return MALICIOUS_INPUT_REGEX.test(String(val));
+}
+
+// Sanitasi karakter: Kode hanya boleh huruf & angka
+function sanitizeCode(val) {
+  return String(val || "")
+    .replace(/[^a-zA-Z0-9-]/g, "")
+    .slice(0, 25);
+}
+
+// Sanitasi karakter: Nama Toko / Item hanya boleh karakter nama wajar (tanpa simbol script/kode)
+function sanitizeName(val) {
+  return String(val || "")
+    .replace(/[<>{}[\];=`$"\\]/g, "")
+    .slice(0, 120);
+}
+
+// Sanitasi karakter: Qty hanya boleh angka bulat positif 0-9 (maks 5 digit = 99999)
+function sanitizeQty(val) {
+  const digitsOnly = String(val || "").replace(/[^0-9]/g, "").slice(0, 5);
+  if (!digitsOnly) return "";
+  return String(Number(digitsOnly));
+}
+
 function formatTanggalOrder(isoString) {
   if (!isoString) return "-";
   const d = new Date(isoString);
@@ -63,6 +93,19 @@ export default function HomePage() {
   // Ref counter ID baris & auto-fokus input baris baru saat tekan Enter
   const nextRowIdRef = useRef(3);
   const namaInputRefs = useRef({});
+  const lastSecurityWarnRef = useRef(0);
+
+  const showSecurityWarning = useCallback(() => {
+    const now = Date.now();
+    if (now - lastSecurityWarnRef.current < 1500) return;
+    lastSecurityWarnRef.current = now;
+    Swal.fire({
+      icon: "error",
+      title: "Input Diblokir Sistem Keamanan",
+      text: "Tidak diizinkan memasukkan function, script, atau simbol kode berbahaya ke dalam kotak isian.",
+      confirmButtonColor: "#dc2626",
+    });
+  }, []);
 
   useEffect(() => {
     const formatter = new Intl.DateTimeFormat("id-ID", {
@@ -191,8 +234,8 @@ export default function HomePage() {
     loadOrders();
   };
 
-  // --- Handler Pilih Toko (2 Arah) ---
-  const findMatchingStore = useCallback(
+  // --- Helper Pencocokan Master Toko & Item ---
+  const findStoreByCode = useCallback(
     (codeVal) => {
       const clean = String(codeVal || "").trim().toLowerCase();
       if (!clean) return null;
@@ -210,9 +253,50 @@ export default function HomePage() {
     [stores]
   );
 
-  const handleKodeTokoChange = (val) => {
+  const findStoreByName = useCallback(
+    (nameVal) => {
+      const clean = String(nameVal || "").trim().toLowerCase();
+      if (!clean) return null;
+      return stores.find((s) => s.store.toLowerCase() === clean) || null;
+    },
+    [stores]
+  );
+
+  const findItemByCode = useCallback(
+    (codeVal) => {
+      const clean = String(codeVal || "").trim().toLowerCase();
+      if (!clean) return null;
+      return (
+        items.find(
+          (it) =>
+            it.kode.toLowerCase() === clean ||
+            (it.barcode && it.barcode.toLowerCase() === clean) ||
+            (it.article && it.article.toLowerCase() !== "tbc" && it.article.toLowerCase() === clean)
+        ) || null
+      );
+    },
+    [items]
+  );
+
+  const findItemByName = useCallback(
+    (nameVal) => {
+      const clean = String(nameVal || "").trim().toLowerCase();
+      if (!clean) return null;
+      return items.find((it) => it.nama.toLowerCase() === clean) || null;
+    },
+    [items]
+  );
+
+  // --- Handler Pilih Toko (2 Arah + Proteksi Anti-Injeksi) ---
+  const handleKodeTokoChange = (rawVal) => {
+    if (isMaliciousString(rawVal)) {
+      showSecurityWarning();
+      return;
+    }
+    const val = sanitizeCode(rawVal);
     setKodeToko(val);
-    const match = findMatchingStore(val);
+
+    const match = findStoreByCode(val);
     if (match) {
       setNamaToko(match.store);
       setSelectedStore(match);
@@ -221,15 +305,15 @@ export default function HomePage() {
     }
   };
 
-  const handleNamaTokoChange = (val) => {
-    setNamaToko(val);
-    const clean = val.trim().toLowerCase();
-    if (!clean) {
-      setSelectedStore(null);
+  const handleNamaTokoChange = (rawVal) => {
+    if (isMaliciousString(rawVal)) {
+      showSecurityWarning();
       return;
     }
+    const val = sanitizeName(rawVal);
+    setNamaToko(val);
 
-    const match = stores.find((s) => s.store.toLowerCase() === clean);
+    const match = findStoreByName(val);
     if (match) {
       setKodeToko(match.code);
       setSelectedStore(match);
@@ -244,44 +328,54 @@ export default function HomePage() {
     setSelectedStore(null);
   };
 
-  // --- Handler Baris Item (2 Arah) ---
-  const handleKodeItemChange = (idx, val) => {
-    const clean = val.trim().toLowerCase();
-    const match = items.find(
-      (it) =>
-        it.kode.toLowerCase() === clean ||
-        (it.barcode && it.barcode.toLowerCase() === clean) ||
-        (it.article && it.article.toLowerCase() !== "tbc" && it.article.toLowerCase() === clean)
-    );
+  // --- Handler Baris Item (2 Arah + Proteksi Anti-Injeksi) ---
+  const handleKodeItemChange = (idx, rawVal) => {
+    if (isMaliciousString(rawVal)) {
+      showSecurityWarning();
+      return;
+    }
+    const val = sanitizeCode(rawVal);
+    const match = findItemByCode(val);
+
     setRows((prev) =>
       prev.map((row, i) => {
         if (i !== idx) return row;
         return {
           ...row,
-          kode: val,
+          kode: match ? match.kode : val,
           nama: match ? match.nama : row.nama,
         };
       })
     );
   };
 
-  const handleNamaItemChange = (idx, val) => {
-    const clean = val.trim().toLowerCase();
-    const match = items.find((it) => it.nama.toLowerCase() === clean);
+  const handleNamaItemChange = (idx, rawVal) => {
+    if (isMaliciousString(rawVal)) {
+      showSecurityWarning();
+      return;
+    }
+    const val = sanitizeName(rawVal);
+    const match = findItemByName(val);
+
     setRows((prev) =>
       prev.map((row, i) => {
         if (i !== idx) return row;
         return {
           ...row,
-          nama: val,
+          nama: match ? match.nama : val,
           kode: match ? match.kode : row.kode,
         };
       })
     );
   };
 
-  const handleQtyChange = (idx, val) => {
-    setRows((prev) => prev.map((row, i) => (i === idx ? { ...row, qty: val } : row)));
+  const handleQtyChange = (idx, rawVal) => {
+    if (isMaliciousString(rawVal)) {
+      showSecurityWarning();
+      return;
+    }
+    const cleanQty = sanitizeQty(rawVal);
+    setRows((prev) => prev.map((row, i) => (i === idx ? { ...row, qty: cleanQty } : row)));
   };
 
   const buatBarisBaru = () => {
@@ -310,6 +404,11 @@ export default function HomePage() {
   };
 
   const handleQtyKeyDown = (e, idx) => {
+    // Blokir karakter non-angka bulat pada input number (e, E, +, -, ., ,)
+    if (["e", "E", "+", "-", ".", ","].includes(e.key)) {
+      e.preventDefault();
+      return;
+    }
     if (e.key === "Enter") {
       e.preventDefault();
       if (idx === rows.length - 1) {
@@ -322,25 +421,106 @@ export default function HomePage() {
     }
   };
 
-  // Hitung ringkasan aktif
-  const validItems = rows.filter(
-    (r) => (r.kode.trim() !== "" || r.nama.trim() !== "") && Number(r.qty) > 0
+  // --- Evaluasi Status Validasi Toko & Baris Item (Untuk Box Merah & Lock Supabase) ---
+  const isKodeTokoInvalid =
+    !loadingMaster && kodeToko.trim() !== "" && !findStoreByCode(kodeToko);
+  const isNamaTokoInvalid =
+    !loadingMaster && namaToko.trim() !== "" && !findStoreByName(namaToko);
+  const isStoreMismatch =
+    !loadingMaster &&
+    !selectedStore &&
+    (kodeToko.trim() !== "" || namaToko.trim() !== "");
+
+  const rowValidations = rows.map((row, idx) => {
+    const kTrim = row.kode.trim();
+    const nTrim = row.nama.trim();
+    const qTrim = String(row.qty || "").trim();
+    const isEmpty = kTrim === "" && nTrim === "" && (qTrim === "" || qTrim === "0");
+
+    const matchByCode = kTrim ? findItemByCode(kTrim) : null;
+    const matchByName = nTrim ? findItemByName(nTrim) : null;
+
+    const kodeInvalid = !loadingMaster && kTrim !== "" && !matchByCode;
+    const namaInvalid = !loadingMaster && nTrim !== "" && !matchByName;
+    // Pastikan kode & nama pada baris tersebut menunjuk ke 1 item yang sama di Supabase
+    const pairMismatch =
+      !loadingMaster &&
+      kTrim !== "" &&
+      nTrim !== "" &&
+      matchByCode &&
+      matchByName &&
+      matchByCode.kode !== matchByName.kode;
+
+    const isItemLockedValid =
+      Boolean(matchByCode) &&
+      Boolean(matchByName) &&
+      matchByCode.kode === matchByName.kode;
+
+    const qtyNum = Number(qTrim);
+    const isQtyValid = Number.isInteger(qtyNum) && qtyNum > 0 && qtyNum <= 99999;
+
+    return {
+      idx,
+      isEmpty,
+      kodeInvalid: kodeInvalid || pairMismatch,
+      namaInvalid: namaInvalid || pairMismatch,
+      pairMismatch,
+      isItemLockedValid,
+      isQtyValid,
+      matchedItem: isItemLockedValid ? matchByCode : null,
+    };
+  });
+
+  const invalidItemRows = rowValidations.filter(
+    (v) => !v.isEmpty && (v.kodeInvalid || v.namaInvalid)
   );
+
+  // Hitung ringkasan aktif hanya dari baris yang itemnya 100% valid di Supabase & Qty > 0
+  const validItems = rows.filter((_, i) => {
+    const v = rowValidations[i];
+    return v && v.isItemLockedValid && v.isQtyValid;
+  });
   const totalQty = validItems.reduce((acc, r) => acc + (Number(r.qty) || 0), 0);
 
-  // --- Handler Tombol Buat Pesanan (Simpan ke Supabase) ---
+  // --- Handler Tombol Buat Pesanan (Simpan ke Supabase dengan Validasi Ketat) ---
   const handleBuatPesanan = async (e) => {
     e.preventDefault();
     if (submitting) return;
 
-    const finalKodeToko = selectedStore ? selectedStore.code : kodeToko.trim();
-    const finalNamaToko = selectedStore ? selectedStore.store : namaToko.trim();
+    // 1. Pastikan Toko wajib terdaftar & terpilih dari master_toko_fmi Supabase
+    if (!selectedStore || isKodeTokoInvalid || isNamaTokoInvalid) {
+      Swal.fire({
+        icon: "error",
+        title: "Toko Tidak Valid!",
+        text: "Kode Toko atau Nama Toko yang Anda ketik tidak terdaftar di database Supabase. Silakan pilih dari daftar rekomendasi yang tersedia.",
+        confirmButtonColor: "#dc2626",
+      });
+      return;
+    }
 
-    if (!finalKodeToko || !finalNamaToko) {
+    // 2. Pastikan tidak ada baris item yang berwarna merah (di luar database master_item_fmi)
+    if (invalidItemRows.length > 0) {
+      const nomorBaris = invalidItemRows.map((v) => `Baris #${v.idx + 1}`).join(", ");
+      Swal.fire({
+        icon: "error",
+        title: "Item Tidak Terdaftar di Database!",
+        html: `Terdapat input item di luar daftar rekomendasi Supabase pada <strong>${nomorBaris}</strong> (ditandai kotak merah).<br/><br/>Silakan pilih Kode / Nama Item yang tersedia di rekomendasi atau hapus baris tersebut.`,
+        confirmButtonColor: "#dc2626",
+      });
+      return;
+    }
+
+    // 3. Cek apakah ada baris yang sudah diisi sebagian tapi belum lengkap (misal pilih item tapi Qty 0, atau isi Qty tapi belum pilih item)
+    const incompleteRow = rowValidations.find(
+      (v) => !v.isEmpty && (!v.isItemLockedValid || !v.isQtyValid)
+    );
+    if (incompleteRow) {
       Swal.fire({
         icon: "warning",
-        title: "Toko Belum Dipilih",
-        text: "Silakan pilih Kode Toko atau Nama Toko Anda terlebih dahulu.",
+        title: `Data Baris #${incompleteRow.idx + 1} Belum Lengkap`,
+        text: !incompleteRow.isItemLockedValid
+          ? `Pada Baris #${incompleteRow.idx + 1}, pastikan Kode Item dan Nama Item sudah dipilih dari rekomendasi.`
+          : `Pada Baris #${incompleteRow.idx + 1}, harap isi jumlah Qty (minimal 1 Pcs).`,
         confirmButtonColor: "#117b3d",
       });
       return;
@@ -350,7 +530,7 @@ export default function HomePage() {
       Swal.fire({
         icon: "warning",
         title: "Daftar Item Kosong",
-        text: "Harap pilih minimal 1 item dan isi jumlah Qty lebih dari 0.",
+        text: "Harap pilih minimal 1 item dari rekomendasi dan isi jumlah Qty lebih dari 0.",
         confirmButtonColor: "#117b3d",
       });
       return;
@@ -363,8 +543,8 @@ export default function HomePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          kode_toko: finalKodeToko,
-          nama_toko: finalNamaToko,
+          kode_toko: selectedStore.code,
+          nama_toko: selectedStore.store,
           items: validItems.map((it) => ({
             kode: it.kode.trim(),
             nama: it.nama.trim(),
@@ -427,7 +607,7 @@ export default function HomePage() {
 
   // --- Handler Lihat Detail Pesanan (100% View-Only) ---
   const handleLihatDetailPesanan = (ord) => {
-    const storeInfo = ord.store_detail || findMatchingStore(ord.kode_toko);
+    const storeInfo = ord.store_detail || findStoreByCode(ord.kode_toko);
     const itemsList = Array.isArray(ord.items) ? ord.items : [];
 
     const rowsHtml = itemsList
@@ -487,7 +667,15 @@ export default function HomePage() {
     });
   };
 
-  // Filter pencarian di halaman Check Pesanan
+  // Filter pencarian di halaman Check Pesanan (dengan sanitasi)
+  const handleSearchOrderChange = (rawVal) => {
+    if (isMaliciousString(rawVal)) {
+      showSecurityWarning();
+      return;
+    }
+    setSearchOrder(sanitizeName(rawVal));
+  };
+
   const filteredOrders = orders.filter((ord) => {
     const q = searchOrder.trim().toLowerCase();
     if (!q) return true;
@@ -614,7 +802,7 @@ export default function HomePage() {
                 <h3>Silakan Pilih Toko Anda</h3>
               </div>
               <p className="section-hint">
-                Pilih salah satu (Kode Toko atau Nama Toko), kolom lainnya akan otomatis terisi.
+                Ketik untuk mencari, lalu pilih Kode Toko atau Nama Toko dari rekomendasi yang muncul.
               </p>
 
               <div className="store-grid">
@@ -624,7 +812,9 @@ export default function HomePage() {
                     id="inputKodeToko"
                     type="text"
                     list="listKodeToko"
-                    className="input-field input-field-code"
+                    className={`input-field input-field-code ${
+                      isKodeTokoInvalid ? "input-field-error" : ""
+                    }`}
                     placeholder={loadingMaster ? "Memuat..." : "Contoh: 0463"}
                     value={kodeToko}
                     onChange={(e) => handleKodeTokoChange(e.target.value)}
@@ -638,7 +828,7 @@ export default function HomePage() {
                     id="inputNamaToko"
                     type="text"
                     list="listNamaToko"
-                    className="input-field"
+                    className={`input-field ${isNamaTokoInvalid ? "input-field-error" : ""}`}
                     placeholder={
                       loadingMaster
                         ? "Memuat daftar toko..."
@@ -666,6 +856,17 @@ export default function HomePage() {
                   </option>
                 ))}
               </datalist>
+
+              {/* PERINGATAN BOX MERAH JIKA INPUT TOKO DI LUAR REKOMENDASI SUPABASE */}
+              {isStoreMismatch && (
+                <div className="store-error-card">
+                  <i className="fa-solid fa-circle-exclamation"></i>
+                  <span>
+                    Kode atau Nama Toko tidak terdaftar di database Supabase! Wajib memilih dari
+                    daftar rekomendasi yang muncul.
+                  </span>
+                </div>
+              )}
 
               {/* INFO DETAIL TOKO OTOMATIS */}
               {selectedStore && (
@@ -712,7 +913,7 @@ export default function HomePage() {
                 <h3>Silakan Pilih Item Pesanan Anda</h3>
               </div>
               <p className="section-hint">
-                Kode Item dan Nama Item saling terhubung otomatis. Isi jumlah pesanan pada kolom Qty.
+                Ketik dan pilih Kode Item atau Nama Item dari rekomendasi Supabase, lalu isi jumlah Qty.
               </p>
 
               <div className="table-wrapper">
@@ -727,58 +928,68 @@ export default function HomePage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((row, idx) => (
-                      <tr key={row.id}>
-                        <td className="cell-no">{idx + 1}</td>
-                        <td className="cell-kode">
-                          <input
-                            type="text"
-                            list="listKodeItem"
-                            className="table-input table-input-code"
-                            placeholder="Kode..."
-                            value={row.kode}
-                            onChange={(e) => handleKodeItemChange(idx, e.target.value)}
-                            autoComplete="off"
-                          />
-                        </td>
-                        <td className="cell-nama">
-                          <input
-                            ref={(el) => {
-                              namaInputRefs.current[row.id] = el;
-                            }}
-                            type="text"
-                            list="listNamaItem"
-                            className="table-input"
-                            placeholder="Pilih atau ketik nama item..."
-                            value={row.nama}
-                            onChange={(e) => handleNamaItemChange(idx, e.target.value)}
-                            autoComplete="off"
-                          />
-                        </td>
-                        <td className="cell-qty">
-                          <input
-                            type="number"
-                            inputMode="numeric"
-                            min="0"
-                            className="table-input table-input-qty"
-                            placeholder="0"
-                            value={row.qty}
-                            onChange={(e) => handleQtyChange(idx, e.target.value)}
-                            onKeyDown={(e) => handleQtyKeyDown(e, idx)}
-                          />
-                        </td>
-                        <td className="cell-action">
-                          <button
-                            type="button"
-                            className="btn-remove-row"
-                            title="Hapus baris ini"
-                            onClick={() => hapusBaris(idx)}
-                          >
-                            <i className="fa-solid fa-minus"></i>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {rows.map((row, idx) => {
+                      const v = rowValidations[idx];
+                      const hasRowErr = v && (v.kodeInvalid || v.namaInvalid);
+
+                      return (
+                        <tr key={row.id} className={hasRowErr ? "row-item-error" : ""}>
+                          <td className="cell-no">{idx + 1}</td>
+                          <td className="cell-kode">
+                            <input
+                              type="text"
+                              list="listKodeItem"
+                              className={`table-input table-input-code ${
+                                v?.kodeInvalid ? "table-input-error" : ""
+                              }`}
+                              placeholder="Kode..."
+                              value={row.kode}
+                              onChange={(e) => handleKodeItemChange(idx, e.target.value)}
+                              autoComplete="off"
+                            />
+                          </td>
+                          <td className="cell-nama">
+                            <input
+                              ref={(el) => {
+                                namaInputRefs.current[row.id] = el;
+                              }}
+                              type="text"
+                              list="listNamaItem"
+                              className={`table-input ${
+                                v?.namaInvalid ? "table-input-error" : ""
+                              }`}
+                              placeholder="Pilih atau ketik nama item..."
+                              value={row.nama}
+                              onChange={(e) => handleNamaItemChange(idx, e.target.value)}
+                              autoComplete="off"
+                            />
+                          </td>
+                          <td className="cell-qty">
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              className="table-input table-input-qty"
+                              placeholder="0"
+                              value={row.qty}
+                              onChange={(e) => handleQtyChange(idx, e.target.value)}
+                              onKeyDown={(e) => handleQtyKeyDown(e, idx)}
+                              autoComplete="off"
+                            />
+                          </td>
+                          <td className="cell-action">
+                            <button
+                              type="button"
+                              className="btn-remove-row"
+                              title="Hapus baris ini"
+                              onClick={() => hapusBaris(idx)}
+                            >
+                              <i className="fa-solid fa-minus"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -798,6 +1009,19 @@ export default function HomePage() {
                   </option>
                 ))}
               </datalist>
+
+              {/* PERINGATAN BOX MERAH JIKA ADA BARIS ITEM DI LUAR REKOMENDASI SUPABASE */}
+              {invalidItemRows.length > 0 && (
+                <div className="store-error-card">
+                  <i className="fa-solid fa-circle-exclamation"></i>
+                  <span>
+                    Peringatan pada{" "}
+                    {invalidItemRows.map((v) => `Baris #${v.idx + 1}`).join(", ")}: Kode atau Nama
+                    Item tidak terdaftar di database Supabase! Wajib memilih dari daftar
+                    rekomendasi.
+                  </span>
+                </div>
+              )}
 
               <div className="table-footer-bar">
                 <button
@@ -858,7 +1082,7 @@ export default function HomePage() {
                 className="orders-search-input"
                 placeholder="Cari No. Order, Kode Toko, atau Nama Toko..."
                 value={searchOrder}
-                onChange={(e) => setSearchOrder(e.target.value)}
+                onChange={(e) => handleSearchOrderChange(e.target.value)}
               />
               <button
                 type="button"
