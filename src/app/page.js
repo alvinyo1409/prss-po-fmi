@@ -4,9 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Swal from "sweetalert2";
 import { supabase } from "@/lib/supabase";
 
-const LOGO_URL =
-  "https://drive.google.com/thumbnail?id=18ZvGPp6CImwAiFTRBfIBBgj0O5G6plVq&sz=w800";
-
 const INITIAL_ROWS = [
   { id: "row-1", kode: "", nama: "", qty: "" },
   { id: "row-2", kode: "", nama: "", qty: "" },
@@ -695,7 +692,7 @@ export default function HomePage() {
       <div className="brand-hero">
         <div className="brand-logos">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={LOGO_URL} alt="Logo Panen Raya" className="company-logo" />
+          <img src="/panenraya-logo.png" alt="Logo CV. Panen Raya Sukses Sejahtera" className="company-logo" />
           <span className="brand-divider" aria-hidden="true"></span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/familymart-logo.png" alt="Logo FamilyMart" className="familymart-logo" />
