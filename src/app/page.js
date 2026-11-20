@@ -2,88 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Swal from "sweetalert2";
+import { supabase } from "@/lib/supabase";
 
 const LOGO_URL =
   "https://drive.google.com/thumbnail?id=18ZvGPp6CImwAiFTRBfIBBgj0O5G6plVq&sz=w800";
-
-// Data contoh sementara untuk preview tampilan (nantinya akan ditarik langsung dari Supabase)
-const SAMPLE_STORES = [
-  {
-    code: "0463",
-    store: "KEMAKMURAN RAYA",
-    dc: "Cibitung",
-    type: "CVS",
-    address: "Jl. Kemakmuran Raya No.43 Mekar Jaya Kec. Sukmajaya, Kota Depok Jawa Barat",
-    pic: "Kiki Rosati",
-  },
-  {
-    code: "0132",
-    store: "AKR TOWER (KEBON JERUK)",
-    dc: "Cibitung",
-    type: "Office",
-    address: "AKR Tower Galery West Level Ground Floor unit 06 Jl. Panjang No. 5 Kebon Jeruk Jakarta Barat 11530",
-    pic: "Samuel Marolopan",
-  },
-  {
-    code: "0169",
-    store: "GROGOL",
-    dc: "Cibitung",
-    type: "CVS",
-    address: "Jl. Dr. Susilo Raya No. 26A, Grogol Petamburan Jakarta Barat 11450",
-    pic: "Denis Satrianes",
-  },
-  {
-    code: "0203",
-    store: "PURI INDAH FINANCIAL TOWER",
-    dc: "Cibitung",
-    type: "Office",
-    address: "Puri Indah Financial Tower (PIFT), Jl. Puri Lingkar Dalam Blok T8, Lantai Dasar Unit No. 09, Kembangan Selatan Jakarta Barat 11610",
-    pic: "Shela Tri Astuti",
-  },
-  {
-    code: "0444",
-    store: "CITY RESORT BOULEVARD",
-    dc: "Cibitung",
-    type: "CVS",
-    address: "The City Resort Residence Rukan Miami D3-5 Jl. Boulevard Raya, Cengkareng, Jakarta Barat",
-    pic: "Adika Selilo Anugrah Putra",
-  },
-  {
-    code: "0134",
-    store: "WISMA GKBI (SUDIRMAN)",
-    dc: "Cibitung",
-    type: "Office",
-    address: "Jl. Jend. Sudirman No.28, RT.14/RW.1 Bendungan Hilir, Tanah Abang Jakarta Pusat 10210",
-    pic: "Gathan Prabaskara",
-  },
-  {
-    code: "0001",
-    store: "CIBUBUR",
-    dc: "Pondok Ungu",
-    type: "FamiSuper",
-    address: "Jl. Alternatif Cibubur, Perumahan Raffles Hills, Cimanggis Depok",
-    pic: "Windy Septiya Putri",
-  },
-];
-
-// Data contoh item Active FamilyMart sementara untuk preview tampilan
-const SAMPLE_ITEMS = [
-  { kode: "607961", barcode: "21062162", nama: "FamilyMart Basreng ExPds Daun Jrk 120-CS" },
-  { kode: "607960", barcode: "21062155", nama: "FamilyMart Kerupuk MieExtra Pedas100g-CS" },
-  { kode: "607969", barcode: "21062186", nama: "FamilyMart Makaroni Goreng ExPds 150g-CS" },
-  { kode: "607970", barcode: "21062148", nama: "FamilyMart Makaroni Remis ExtPds 100g-CS" },
-  { kode: "607962", barcode: "21062179", nama: "FamilyMart Makaroni Spiral ExPds 150g-CS" },
-  { kode: "607967", barcode: "21062100", nama: "Familymart Pilus Ikan Original 95g-CS" },
-  { kode: "607958", barcode: "21062094", nama: "FamilyMart Seblak Kcng Extra Pds 80g-CS" },
-  { kode: "607959", barcode: "21062131", nama: "FamilyMart Seblak Mix Extra Pedas100g-CS" },
-  { kode: "607966", barcode: "21062087", nama: "FamilyMart Telur Gabus Keju 70g-CS" },
-  { kode: "21063671", barcode: "21063671", nama: "FamilyMart Basreng Koin Pds Jrk 120g-CS" },
-  { kode: "21064111", barcode: "21064111", nama: "FamilyMart Basreng Ori Daun Jrk 120g-CS" },
-  { kode: "21064128", barcode: "21064128", nama: "FamilyMart Seblak Extra Pedas 80g-CS" },
-  { kode: "21064142", barcode: "21064142", nama: "FamilyMart Seblak Pedas Keju 80g-CS" },
-  { kode: "21064104", barcode: "21064104", nama: "FamilyMart Krupuk Extra Pedas 100g-CS" },
-  { kode: "21064135", barcode: "21064135", nama: "FamilyMart Makaroni Pedas Keju 150g-CS" },
-];
 
 const INITIAL_ROWS = [
   { id: "row-1", kode: "", nama: "", qty: "" },
@@ -92,6 +14,12 @@ const INITIAL_ROWS = [
 
 export default function HomePage() {
   const [tanggalLabel, setTanggalLabel] = useState("");
+
+  // State Data Master dari Supabase
+  const [stores, setStores] = useState([]);
+  const [items, setItems] = useState([]);
+  const [loadingMaster, setLoadingMaster] = useState(true);
+  const [masterError, setMasterError] = useState("");
 
   // State Toko (2 arah: Kode <-> Nama)
   const [kodeToko, setKodeToko] = useState("");
@@ -118,11 +46,114 @@ export default function HomePage() {
     });
   }, []);
 
+  // Fetch Master Toko & Master Item dari Supabase
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadMasterData() {
+      setLoadingMaster(true);
+      setMasterError("");
+
+      try {
+        const res = await fetch("/api/master", { cache: "no-store" });
+        const json = await res.json();
+
+        if (res.ok && json.ok) {
+          if (isMounted) {
+            setStores(json.stores || []);
+            setItems(json.items || []);
+            setLoadingMaster(false);
+          }
+          return;
+        }
+
+        // Fallback langsung via client supabase jika API route gagal
+        if (supabase) {
+          const [tokoRes, itemRes] = await Promise.all([
+            supabase
+              .from("master_toko_fmi")
+              .select("code, store, dc, type, city, address, pic, status")
+              .order("store", { ascending: true }),
+            supabase
+              .from("master_item_fmi")
+              .select("article, barcode, article_name, status")
+              .order("article_name", { ascending: true }),
+          ]);
+
+          if (tokoRes.error) throw new Error(tokoRes.error.message);
+          if (itemRes.error) throw new Error(itemRes.error.message);
+
+          const mappedStores = (tokoRes.data || []).map((s) => ({
+            code: String(s.code || "").trim(),
+            store: String(s.store || "").trim(),
+            dc: String(s.dc || "").trim(),
+            type: String(s.type || "").trim(),
+            city: String(s.city || "").trim(),
+            address: String(s.address || "").trim(),
+            pic: String(s.pic || "").trim(),
+          }));
+
+          const mappedItems = (itemRes.data || [])
+            .filter((it) => {
+              const st = String(it.status || "Active").trim().toLowerCase();
+              return st === "active" || st === "aktif";
+            })
+            .map((it) => {
+              const rawArticle = String(it.article || "").trim();
+              const rawBarcode = String(it.barcode || "").trim();
+              const displayKode =
+                !rawArticle || rawArticle.toUpperCase() === "TBC" ? rawBarcode : rawArticle;
+              return {
+                kode: displayKode,
+                article: rawArticle,
+                barcode: rawBarcode,
+                nama: String(it.article_name || "").trim(),
+              };
+            });
+
+          if (isMounted) {
+            setStores(mappedStores);
+            setItems(mappedItems);
+            setLoadingMaster(false);
+          }
+          return;
+        }
+
+        throw new Error(json.error || "Gagal memuat data master dari Supabase.");
+      } catch (err) {
+        if (isMounted) {
+          setMasterError(err?.message || "Gagal memuat data dari Supabase.");
+          setLoadingMaster(false);
+        }
+      }
+    }
+
+    loadMasterData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // --- Handler Pilih Toko (2 Arah) ---
   const handleKodeTokoChange = (val) => {
     setKodeToko(val);
     const clean = val.trim().toLowerCase();
-    const match = SAMPLE_STORES.find((s) => s.code.toLowerCase() === clean);
+    if (!clean) {
+      setSelectedStore(null);
+      return;
+    }
+
+    const match = stores.find((s) => {
+      const sCode = s.code.toLowerCase();
+      if (sCode === clean) return true;
+      // Dukungan pencocokan kode angka dengan/tanpa leading zero (misal 134 vs 0134)
+      if (/^\d+$/.test(clean) && /^\d+$/.test(sCode) && clean.length >= 3) {
+        return Number(sCode) === Number(clean);
+      }
+      return false;
+    });
+
     if (match) {
       setNamaToko(match.store);
       setSelectedStore(match);
@@ -134,7 +165,12 @@ export default function HomePage() {
   const handleNamaTokoChange = (val) => {
     setNamaToko(val);
     const clean = val.trim().toLowerCase();
-    const match = SAMPLE_STORES.find((s) => s.store.toLowerCase() === clean);
+    if (!clean) {
+      setSelectedStore(null);
+      return;
+    }
+
+    const match = stores.find((s) => s.store.toLowerCase() === clean);
     if (match) {
       setKodeToko(match.code);
       setSelectedStore(match);
@@ -152,8 +188,11 @@ export default function HomePage() {
   // --- Handler Baris Item (2 Arah) ---
   const handleKodeItemChange = (idx, val) => {
     const clean = val.trim().toLowerCase();
-    const match = SAMPLE_ITEMS.find(
-      (it) => it.kode.toLowerCase() === clean || it.barcode.toLowerCase() === clean
+    const match = items.find(
+      (it) =>
+        it.kode.toLowerCase() === clean ||
+        (it.barcode && it.barcode.toLowerCase() === clean) ||
+        (it.article && it.article.toLowerCase() !== "tbc" && it.article.toLowerCase() === clean)
     );
     setRows((prev) =>
       prev.map((row, i) => {
@@ -169,7 +208,7 @@ export default function HomePage() {
 
   const handleNamaItemChange = (idx, val) => {
     const clean = val.trim().toLowerCase();
-    const match = SAMPLE_ITEMS.find((it) => it.nama.toLowerCase() === clean);
+    const match = items.find((it) => it.nama.toLowerCase() === clean);
     setRows((prev) =>
       prev.map((row, i) => {
         if (i !== idx) return row;
@@ -230,7 +269,7 @@ export default function HomePage() {
   );
   const totalQty = validItems.reduce((acc, r) => acc + (Number(r.qty) || 0), 0);
 
-  // --- Handler Tombol Buat Pesanan (Preview Mode) ---
+  // --- Handler Tombol Buat Pesanan ---
   const handleBuatPesanan = (e) => {
     e.preventDefault();
 
@@ -266,10 +305,10 @@ export default function HomePage() {
 
     Swal.fire({
       icon: "success",
-      title: "Preview Pesanan Siap!",
+      title: "Ringkasan Pesanan Toko",
       html: `
         <div style="text-align:left;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:12px;font-size:13px;">
-          <div><strong>Toko:</strong> ${kodeToko} — ${namaToko}</div>
+          <div><strong>Toko:</strong> ${selectedStore ? selectedStore.code : kodeToko} — ${selectedStore ? selectedStore.store : namaToko}</div>
           ${selectedStore ? `<div><strong>DC / PIC:</strong> ${selectedStore.dc} / ${selectedStore.pic}</div>` : ""}
           ${catatan.trim() ? `<div><strong>Catatan:</strong> ${catatan.trim()}</div>` : ""}
         </div>
@@ -277,9 +316,6 @@ export default function HomePage() {
         <div style="font-size:14px;font-weight:bold;color:#0e6231;text-align:right;">
           Total: ${validItems.length} Jenis Item (${totalQty.toLocaleString("id-ID")} Pcs)
         </div>
-        <p style="font-size:11px;color:#64748b;margin-top:12px;margin-bottom:0;">
-          *Mode Preview Tampilan — belum terhubung ke database Supabase.
-        </p>
       `,
       confirmButtonText: "Oke, Mengerti",
       confirmButtonColor: "#117b3d",
@@ -314,6 +350,44 @@ export default function HomePage() {
           )}
         </div>
 
+        {/* INDIKATOR KONEKSI DATABASE SUPABASE */}
+        {loadingMaster && (
+          <div
+            style={{
+              backgroundColor: "#f0fdf4",
+              border: "1px solid #bbf7d0",
+              color: "#0e6231",
+              padding: "10px 14px",
+              borderRadius: "8px",
+              fontSize: "13px",
+              marginBottom: "18px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <i className="fa-solid fa-spinner fa-spin"></i>
+            <span>Memuat database Toko &amp; Item FamilyMart dari Supabase...</span>
+          </div>
+        )}
+
+        {!loadingMaster && masterError && (
+          <div
+            style={{
+              backgroundColor: "#fef2f2",
+              border: "1px solid #fecaca",
+              color: "#b91c1c",
+              padding: "10px 14px",
+              borderRadius: "8px",
+              fontSize: "13px",
+              marginBottom: "18px",
+            }}
+          >
+            <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 6 }}></i>
+            {masterError}
+          </div>
+        )}
+
         {/* BAGIAN 1: PILIH TOKO */}
         <div className="section-block">
           <div className="section-header">
@@ -332,7 +406,7 @@ export default function HomePage() {
                 type="text"
                 list="listKodeToko"
                 className="input-field input-field-code"
-                placeholder="Contoh: 0463"
+                placeholder={loadingMaster ? "Memuat..." : "Contoh: 0463"}
                 value={kodeToko}
                 onChange={(e) => handleKodeTokoChange(e.target.value)}
                 autoComplete="off"
@@ -346,7 +420,11 @@ export default function HomePage() {
                 type="text"
                 list="listNamaToko"
                 className="input-field"
-                placeholder="Ketik atau pilih nama toko FamilyMart..."
+                placeholder={
+                  loadingMaster
+                    ? "Memuat daftar toko..."
+                    : `Ketik atau pilih nama toko (${stores.length} toko)...`
+                }
                 value={namaToko}
                 onChange={(e) => handleNamaTokoChange(e.target.value)}
                 autoComplete="off"
@@ -355,7 +433,7 @@ export default function HomePage() {
           </div>
 
           <datalist id="listKodeToko">
-            {SAMPLE_STORES.map((s) => (
+            {stores.map((s) => (
               <option key={s.code} value={s.code}>
                 {s.store}
               </option>
@@ -363,7 +441,7 @@ export default function HomePage() {
           </datalist>
 
           <datalist id="listNamaToko">
-            {SAMPLE_STORES.map((s) => (
+            {stores.map((s) => (
               <option key={s.code} value={s.store}>
                 {s.code} — {s.dc}
               </option>
@@ -375,24 +453,35 @@ export default function HomePage() {
             <div className="store-info-card">
               <div className="store-info-top">
                 <div className="store-tags">
-                  <span className="store-tag">
-                    <i className="fa-solid fa-warehouse"></i> DC: {selectedStore.dc}
-                  </span>
-                  <span className="store-tag">
-                    <i className="fa-solid fa-tag"></i> {selectedStore.type}
-                  </span>
-                  <span className="store-tag">
-                    <i className="fa-solid fa-user"></i> PIC: {selectedStore.pic}
-                  </span>
+                  {selectedStore.dc && (
+                    <span className="store-tag">
+                      <i className="fa-solid fa-warehouse"></i> DC: {selectedStore.dc}
+                    </span>
+                  )}
+                  {selectedStore.type && (
+                    <span className="store-tag">
+                      <i className="fa-solid fa-tag"></i> {selectedStore.type}
+                    </span>
+                  )}
+                  {selectedStore.pic && (
+                    <span className="store-tag">
+                      <i className="fa-solid fa-user"></i> PIC: {selectedStore.pic}
+                    </span>
+                  )}
                 </div>
                 <button type="button" className="btn-reset-store" onClick={resetToko}>
                   <i className="fa-solid fa-rotate-left"></i> Ganti Toko
                 </button>
               </div>
-              <div className="store-address">
-                <i className="fa-solid fa-location-dot" style={{ color: "#117b3d", marginTop: 2 }}></i>
-                <span>{selectedStore.address}</span>
-              </div>
+              {selectedStore.address && (
+                <div className="store-address">
+                  <i
+                    className="fa-solid fa-location-dot"
+                    style={{ color: "#117b3d", marginTop: 2 }}
+                  ></i>
+                  <span>{selectedStore.address}</span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -422,7 +511,7 @@ export default function HomePage() {
                 {rows.map((row, idx) => (
                   <tr key={row.id}>
                     <td className="cell-no">{idx + 1}</td>
-                    <td>
+                    <td className="cell-kode">
                       <input
                         type="text"
                         list="listKodeItem"
@@ -433,7 +522,7 @@ export default function HomePage() {
                         autoComplete="off"
                       />
                     </td>
-                    <td>
+                    <td className="cell-nama">
                       <input
                         ref={(el) => {
                           namaInputRefs.current[row.id] = el;
@@ -447,9 +536,10 @@ export default function HomePage() {
                         autoComplete="off"
                       />
                     </td>
-                    <td>
+                    <td className="cell-qty">
                       <input
                         type="number"
+                        inputMode="numeric"
                         min="0"
                         className="table-input table-input-qty"
                         placeholder="0"
@@ -475,16 +565,16 @@ export default function HomePage() {
           </div>
 
           <datalist id="listKodeItem">
-            {SAMPLE_ITEMS.map((it) => (
-              <option key={it.kode} value={it.kode}>
+            {items.map((it) => (
+              <option key={`${it.kode}-${it.barcode}`} value={it.kode}>
                 {it.nama}
               </option>
             ))}
           </datalist>
 
           <datalist id="listNamaItem">
-            {SAMPLE_ITEMS.map((it) => (
-              <option key={it.kode} value={it.nama}>
+            {items.map((it) => (
+              <option key={`${it.kode}-${it.barcode}`} value={it.nama}>
                 Kode: {it.kode}
               </option>
             ))}

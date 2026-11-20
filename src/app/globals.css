@@ -499,31 +499,37 @@ p.sub-title {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* 9. RESPONSIVE MOBILE */
+/* 9. RESPONSIVE MOBILE (RAMAH LAYAR HP TANPA SCROLL KANAN) */
 @media (max-width: 640px) {
   body {
-    padding: 20px 10px 72px 10px;
+    padding: 18px 10px 72px 10px;
   }
 
   .company-logo {
-    width: 96px;
+    width: 92px;
   }
 
   h1 {
-    font-size: 21px;
+    font-size: 20px;
   }
 
   p.sub-title {
     font-size: 13px;
+    margin-bottom: 18px;
   }
 
   .order-card {
-    padding: 20px 16px;
+    padding: 18px 14px;
     border-radius: 12px;
   }
 
+  .card-welcome {
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+  }
+
   .card-welcome h2 {
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .store-grid {
@@ -533,6 +539,154 @@ p.sub-title {
 
   .section-hint {
     margin-left: 0;
+  }
+
+  /* Ubah tabel item menjadi kartu 2-baris per item agar muat 100% di layar HP */
+  .table-wrapper {
+    overflow-x: visible;
+    border: none;
+    background-color: transparent;
+    border-radius: 0;
+  }
+
+  .order-table {
+    min-width: 0;
+    width: 100%;
+    display: block;
+  }
+
+  .order-table thead {
+    display: none;
+  }
+
+  .order-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .order-table tbody tr {
+    display: grid;
+    grid-template-columns: 36px 1fr 1fr 42px;
+    grid-template-areas:
+      "no nama nama action"
+      "kode kode qty qty";
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background-color: #ffffff !important;
+    box-shadow: 0 2px 5px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
+  }
+
+  .order-table tbody td {
+    border: none;
+    display: flex;
+    align-items: center;
+  }
+
+  .cell-no {
+    grid-area: no;
+    background-color: #0e6231;
+    color: #ffffff;
+    font-size: 12px;
+    justify-content: center;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 0 !important;
+  }
+
+  .cell-nama {
+    grid-area: nama;
+    border-bottom: 1px solid #e2e8f0 !important;
+    border-right: 1px solid #e2e8f0 !important;
+  }
+
+  .cell-nama .table-input {
+    padding: 10px 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .cell-action {
+    grid-area: action;
+    justify-content: center;
+    background-color: #fff5f5;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 4px !important;
+  }
+
+  .cell-kode {
+    grid-area: kode;
+    border-right: 1px solid #e2e8f0 !important;
+    background-color: #f8fafc;
+    padding: 4px 8px !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cell-kode::before {
+    content: "KODE";
+    font-size: 10px;
+    font-weight: bold;
+    color: #64748b;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+
+  .cell-kode .table-input-code {
+    padding: 6px 6px;
+    font-size: 13px;
+    text-align: left;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+  }
+
+  .cell-qty {
+    grid-area: qty;
+    background-color: #f0fdf4;
+    padding: 4px 8px !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cell-qty::before {
+    content: "QTY (PCS)";
+    font-size: 10px;
+    font-weight: bold;
+    color: #0e6231;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+
+  .cell-qty .table-input-qty {
+    padding: 6px 8px;
+    font-size: 14px;
+    text-align: center;
+    background-color: #ffffff;
+    border: 1px solid #86efac;
+    border-radius: 6px;
+  }
+
+  .table-footer-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-add-row {
+    width: 100%;
+    padding: 11px 16px;
+  }
+
+  .summary-pills {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .summary-pill {
+    text-align: center;
   }
 
   .order-submit-area {
