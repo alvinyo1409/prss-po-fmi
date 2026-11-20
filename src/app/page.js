@@ -28,7 +28,6 @@ export default function HomePage() {
 
   // State Daftar Item Pesanan
   const [rows, setRows] = useState(INITIAL_ROWS);
-  const [catatan, setCatatan] = useState("");
 
   // Ref counter ID baris & auto-fokus input baris baru saat tekan Enter
   const nextRowIdRef = useRef(3);
@@ -310,7 +309,6 @@ export default function HomePage() {
         <div style="text-align:left;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:12px;font-size:13px;">
           <div><strong>Toko:</strong> ${selectedStore ? selectedStore.code : kodeToko} — ${selectedStore ? selectedStore.store : namaToko}</div>
           ${selectedStore ? `<div><strong>DC / PIC:</strong> ${selectedStore.dc} / ${selectedStore.pic}</div>` : ""}
-          ${catatan.trim() ? `<div><strong>Catatan:</strong> ${catatan.trim()}</div>` : ""}
         </div>
         <div style="max-height:200px;overflow-y:auto;margin-bottom:12px;">${daftarHtml}</div>
         <div style="font-size:14px;font-weight:bold;color:#0e6231;text-align:right;">
@@ -605,20 +603,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* BAGIAN 3: CATATAN & TOMBOL BUAT PESANAN */}
+        {/* BAGIAN 3: TOMBOL BUAT PESANAN */}
         <div className="order-submit-area">
-          <div className="notes-box">
-            <label htmlFor="inputCatatan">Catatan Tambahan (Opsional)</label>
-            <input
-              id="inputCatatan"
-              type="text"
-              className="input-field"
-              placeholder="Contoh: Kirim bersama jadwal reguler / nama pemesan..."
-              value={catatan}
-              onChange={(e) => setCatatan(e.target.value)}
-            />
-          </div>
-
           <button type="submit" className="btn-submit-order">
             <i className="fa-solid fa-paper-plane"></i>
             Buat Pesanan
