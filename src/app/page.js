@@ -654,10 +654,7 @@ export default function HomePage() {
             </table>
           </div>
 
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid #e2e8f0;font-weight:bold;color:#0e6231;">
-            <span style="font-size:11px;color:#64748b;font-weight:normal;">
-              <i class="fa-solid fa-lock"></i> Mode Baca (View-Only)
-            </span>
+          <div style="display:flex;justify-content:flex-end;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid #e2e8f0;font-weight:bold;color:#0e6231;">
             <span>Total: ${Number(ord.total_jenis_item)} Item (${Number(ord.total_qty).toLocaleString("id-ID")} Pcs)</span>
           </div>
         </div>
