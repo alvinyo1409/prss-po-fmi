@@ -1,3 +1,22 @@
+/* ============================================================ */
+/* PORTAL PEMESANAN FMI — TEMA PUTIH · BIRU · HIJAU (OPSI A)    */
+/* Dasar putih bersih, bentuk biru & hijau besar di sudut,      */
+/* banner gradasi tunggal dengan tepi bergelombang.             */
+/* ============================================================ */
+:root {
+  --blue: #0b8ad8;
+  --blue-dark: #0a66c2;
+  --blue-soft: #eaf5fd;
+  --blue-line: #cfe3f5;
+  --green: #00a64f;
+  --green-dark: #008a41;
+  --green-soft: #e9f8ef;
+  --green-line: #b9e8cb;
+  --ink: #0f2742;
+  --muted: #5b6b80;
+  --line: #dbe6f1;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -7,41 +26,57 @@ body {
   max-width: 100vw;
 }
 
-/* 1. LAYOUT UTAMA & BACKGROUND (TEMA PUTIH - BIRU - HIJAU FAMILYMART, GAYA ANAK MUDA) */
+/* 1. LAYOUT UTAMA & BACKGROUND */
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f9ff;
-  background-image:
-    radial-gradient(circle at 6% 34%, rgba(0, 166, 79, 0.16) 0, transparent 26%),
-    radial-gradient(circle at 96% 66%, rgba(11, 138, 216, 0.18) 0, transparent 30%),
-    radial-gradient(rgba(11, 138, 216, 0.18) 1.6px, transparent 1.8px),
-    linear-gradient(180deg, #eef6ff 0%, #ffffff 52%, #eefaf3 100%);
-  background-size: auto, auto, 26px 26px, auto;
-  background-attachment: fixed;
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  background-color: #ffffff;
   margin: 0;
-  padding: 36px 20px 80px 20px;
+  padding: 36px 20px 84px 20px;
   text-align: center;
   min-height: 100vh;
-  color: #2d3748;
+  color: var(--ink);
 }
 
-/* Pita diagonal biru-hijau (terinspirasi desain kemasan FamilyMart) */
+/* Bentuk besar hijau di sudut kiri-bawah */
 body::before {
   content: "";
   position: fixed;
-  inset: 0;
+  left: -190px;
+  bottom: -210px;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(0, 166, 79, 0.28), rgba(0, 166, 79, 0.06));
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(
-    115deg,
-    transparent 0%,
-    transparent 60%,
-    rgba(11, 138, 216, 0.09) 60%,
-    rgba(11, 138, 216, 0.09) 76%,
-    rgba(0, 166, 79, 0.1) 76%,
-    rgba(0, 166, 79, 0.1) 88%,
-    transparent 88%
-  );
+}
+
+/* Bentuk besar biru di sudut kanan-bawah */
+body::after {
+  content: "";
+  position: fixed;
+  right: -170px;
+  bottom: -190px;
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  background: linear-gradient(225deg, rgba(11, 138, 216, 0.3), rgba(11, 138, 216, 0.06));
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Cincin aksen hijau di sisi kanan */
+html::before {
+  content: "";
+  position: fixed;
+  right: 4%;
+  top: 46%;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 20px solid rgba(0, 166, 79, 0.1);
+  z-index: -1;
+  pointer-events: none;
 }
 
 a {
@@ -49,35 +84,27 @@ a {
   text-decoration: none;
 }
 
-/* BANNER HEADER BIRU-HIJAU DENGAN POLA DIAGONAL (FULL-WIDTH) */
+/* BANNER HEADER — GRADASI TUNGGAL BIRU KE HIJAU, TEPI BERGELOMBANG */
 .brand-hero {
   position: relative;
   margin: -36px -20px 0 -20px;
-  padding: 30px 20px 74px 20px;
+  padding: 28px 20px 78px 20px;
   background:
-    repeating-linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.08) 0,
-      rgba(255, 255, 255, 0.08) 14px,
-      transparent 14px,
-      transparent 28px
-    ),
-    radial-gradient(circle at 88% 18%, rgba(255, 255, 255, 0.22) 0, transparent 38%),
-    radial-gradient(circle at 8% 90%, rgba(255, 255, 255, 0.14) 0, transparent 32%),
-    linear-gradient(120deg, #0a66c2 0%, #0b8ad8 38%, #00a64f 100%);
-  box-shadow: 0 8px 22px rgba(11, 111, 208, 0.3);
-  overflow: hidden;
+    radial-gradient(circle at 91% 26%, rgba(255, 255, 255, 0.14) 0 72px, transparent 73px),
+    radial-gradient(circle at 5% 88%, rgba(255, 255, 255, 0.1) 0 92px, transparent 93px),
+    linear-gradient(110deg, var(--blue-dark) 0%, var(--blue) 48%, var(--green) 100%);
 }
 
-/* Garis aksen gradasi putih - biru muda - hijau di bawah banner */
 .brand-hero::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
-  height: 8px;
-  background: linear-gradient(90deg, #ffffff 0%, #8fd3ff 35%, #00a64f 100%);
+  bottom: -1px;
+  height: 44px;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 80' preserveAspectRatio='none'%3E%3Cpath d='M0,44 C240,94 480,2 720,32 C960,62 1200,92 1440,36 L1440,80 L0,80 Z' fill='%23ffffff'/%3E%3C/svg%3E");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 
 .brand-logos {
@@ -86,16 +113,16 @@ a {
   justify-content: center;
   gap: 18px;
   background-color: #ffffff;
-  padding: 10px 24px;
-  border-radius: 16px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+  padding: 10px 26px;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(4, 38, 86, 0.28);
   margin-bottom: 14px;
 }
 
 .brand-divider {
   width: 2px;
   height: 38px;
-  background-color: #e2e8f0;
+  background-color: var(--line);
   border-radius: 2px;
 }
 
@@ -113,67 +140,86 @@ a {
 
 h1 {
   color: #ffffff;
-  font-size: 28px;
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+  font-size: 29px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-shadow: 0 2px 8px rgba(4, 38, 86, 0.35);
   margin-top: 4px;
   margin-bottom: 6px;
 }
 
 p.sub-title {
-  color: #e0f2fe;
+  color: #e6f4ff;
   font-size: 15px;
   font-weight: 600;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 1px 4px rgba(4, 38, 86, 0.35);
   margin-top: 0;
   margin-bottom: 0;
 }
 
 /* 2. KOTAK WADAH FORM UTAMA */
 .order-card {
-  background-color: rgba(255, 255, 255, 0.97);
-  padding: 32px 34px;
-  border-radius: 14px;
-  max-width: 860px;
-  margin: -42px auto 30px auto;
   position: relative;
   z-index: 1;
-  box-shadow: 0 12px 32px rgba(11, 111, 208, 0.22);
+  background-color: #ffffff;
+  padding: 38px 42px 34px 42px;
+  border-radius: 20px;
+  max-width: 980px;
+  margin: -34px auto 30px auto;
+  border: 1px solid #e6eef7;
+  box-shadow: 0 22px 54px rgba(10, 102, 194, 0.15), 0 2px 8px rgba(15, 39, 66, 0.06);
   text-align: left;
-  border-top: 6px solid #0e6231;
+}
+
+/* Garis aksen gradasi biru-hijau di sisi atas kartu */
+.order-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(90deg, var(--blue), var(--green));
 }
 
 .card-welcome {
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 18px;
-  margin-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 20px;
+  margin-bottom: 26px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
 .card-welcome h2 {
   margin: 0;
-  color: #0e6231;
-  font-size: 21px;
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 800;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+.card-welcome h2 i {
+  color: var(--blue);
+}
+
 .card-welcome-sub {
-  margin: 4px 0 0 0;
-  color: #64748b;
-  font-size: 13px;
+  margin: 5px 0 0 0;
+  color: var(--muted);
+  font-size: 13.5px;
 }
 
 .date-badge {
-  background-color: #f0fdf4;
-  color: #0e6231;
-  border: 1px solid #bbf7d0;
-  padding: 6px 12px;
-  border-radius: 20px;
+  background-color: var(--blue-soft);
+  color: var(--blue-dark);
+  border: 1px solid var(--blue-line);
+  padding: 7px 14px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: bold;
   display: inline-flex;
@@ -183,21 +229,21 @@ p.sub-title {
 
 /* 3. SECTION HEADING */
 .section-block {
-  margin-bottom: 28px;
+  margin-bottom: 30px;
 }
 
 .section-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
   margin-bottom: 14px;
 }
 
 .step-badge {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background-color: #0e6231;
+  background: linear-gradient(135deg, var(--blue), var(--green));
   color: #ffffff;
   font-size: 13px;
   font-weight: bold;
@@ -205,58 +251,66 @@ p.sub-title {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(11, 138, 216, 0.3);
 }
 
 .section-header h3 {
   margin: 0;
-  font-size: 15px;
-  color: #1e293b;
-  font-weight: bold;
+  font-size: 16px;
+  color: var(--ink);
+  font-weight: 800;
 }
 
 .section-hint {
-  font-size: 12px;
-  color: #64748b;
-  margin: -8px 0 12px 36px;
+  font-size: 12.5px;
+  color: var(--muted);
+  margin: -8px 0 14px 39px;
 }
 
 /* 4. PILIH TOKO GRID & INFO CARD */
 .store-grid {
   display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 14px;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
 }
 
 .field-group label {
-  font-weight: bold;
-  color: #334155;
-  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink);
+  font-size: 11.5px;
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.6px;
 }
 
 .input-field {
   width: 100%;
-  padding: 11px 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 14px;
-  background-color: #ffffff;
-  color: #1e293b;
+  padding: 12px 15px;
+  border: 1.5px solid #cfdcea;
+  border-radius: 12px;
+  font-size: 14.5px;
+  background-color: #fbfdff;
+  color: var(--ink);
   font-family: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.input-field::placeholder,
+.table-input::placeholder,
+.orders-search-input::placeholder {
+  color: #9aabbd;
 }
 
 .input-field:focus {
   outline: none;
-  border-color: #117b3d;
-  box-shadow: 0 0 0 3px rgba(17, 123, 61, 0.18);
+  background-color: #ffffff;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(11, 138, 216, 0.16);
 }
 
 .input-field-code {
-  font-family: monospace;
+  font-family: Consolas, "Courier New", monospace;
   font-weight: bold;
   text-align: center;
   letter-spacing: 0.5px;
@@ -275,14 +329,14 @@ p.sub-title {
 }
 
 .store-error-card {
-  margin-top: 10px;
+  margin-top: 12px;
   background-color: #fef2f2;
   border: 1px solid #fecaca;
   border-left: 4px solid #dc2626;
-  border-radius: 8px;
-  padding: 10px 14px;
+  border-radius: 10px;
+  padding: 11px 15px;
   color: #b91c1c;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -290,15 +344,15 @@ p.sub-title {
 }
 
 .store-info-card {
-  margin-top: 14px;
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-left: 4px solid #117b3d;
-  border-radius: 8px;
-  padding: 14px 16px;
+  margin-top: 16px;
+  background-color: var(--green-soft);
+  border: 1px solid var(--green-line);
+  border-left: 5px solid var(--green);
+  border-radius: 12px;
+  padding: 15px 18px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
 }
 
 .store-info-top {
@@ -317,23 +371,27 @@ p.sub-title {
 
 .store-tag {
   background-color: #ffffff;
-  border: 1px solid #86efac;
-  color: #14532d;
-  padding: 3px 10px;
-  border-radius: 14px;
+  border: 1px solid var(--green-line);
+  color: #0b5a30;
+  padding: 4px 12px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: bold;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+}
+
+.store-tag i {
+  color: var(--green);
 }
 
 .btn-reset-store {
-  background: transparent;
-  border: 1px solid #cbd5e1;
-  color: #64748b;
-  padding: 4px 10px;
-  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid #cfdcea;
+  color: var(--muted);
+  padding: 5px 12px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -341,6 +399,7 @@ p.sub-title {
   align-items: center;
   gap: 5px;
   transition: all 0.15s ease;
+  font-family: inherit;
 }
 
 .btn-reset-store:hover {
@@ -350,9 +409,9 @@ p.sub-title {
 }
 
 .store-address {
-  font-size: 13px;
-  color: #334155;
-  line-height: 1.45;
+  font-size: 13.5px;
+  color: #2b3f57;
+  line-height: 1.5;
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -361,26 +420,28 @@ p.sub-title {
 /* 5. TABEL ITEM PESANAN */
 .table-wrapper {
   overflow-x: auto;
-  border-radius: 10px;
-  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  border: 1px solid var(--blue-line);
   background-color: #ffffff;
+  box-shadow: 0 4px 14px rgba(10, 102, 194, 0.06);
 }
 
 .order-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 13.5px;
   min-width: 560px;
 }
 
 .order-table thead th {
-  background-color: #0e6231;
+  background-color: var(--blue-dark);
   color: #ffffff;
-  padding: 11px 10px;
-  font-weight: 600;
+  padding: 12px 10px;
+  font-weight: 700;
   text-align: center;
-  border-right: 1px solid #0b4d26;
-  font-size: 13px;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 12.5px;
+  letter-spacing: 0.3px;
 }
 
 .order-table thead th:last-child {
@@ -389,8 +450,8 @@ p.sub-title {
 
 .order-table tbody td {
   padding: 0;
-  border-top: 1px solid #e2e8f0;
-  border-right: 1px solid #e2e8f0;
+  border-top: 1px solid #e4edf6;
+  border-right: 1px solid #e4edf6;
   vertical-align: middle;
 }
 
@@ -399,17 +460,17 @@ p.sub-title {
 }
 
 .order-table tbody tr:nth-child(even) {
-  background-color: #f8fafc;
+  background-color: #f7fbff;
 }
 
 .order-table tbody tr:hover {
-  background-color: #f0fdf4;
+  background-color: var(--blue-soft);
 }
 
 .cell-no {
   text-align: center;
   font-weight: bold;
-  color: #64748b;
+  color: var(--muted);
   font-size: 13px;
   padding: 8px 6px !important;
 }
@@ -418,31 +479,31 @@ p.sub-title {
   width: 100%;
   border: none;
   background: transparent;
-  padding: 11px 12px;
-  font-size: 13px;
-  color: #1e293b;
+  padding: 12px 13px;
+  font-size: 13.5px;
+  color: var(--ink);
   font-family: inherit;
   outline: none;
 }
 
 .table-input:focus {
   background-color: #ffffff;
-  box-shadow: inset 0 0 0 2px #117b3d;
+  box-shadow: inset 0 0 0 2px var(--blue);
 }
 
 .table-input-code {
   text-align: center;
-  font-family: monospace;
+  font-family: Consolas, "Courier New", monospace;
   font-weight: bold;
-  color: #0e6231;
+  color: var(--blue-dark);
 }
 
 .table-input-qty {
   text-align: right;
-  font-family: monospace;
+  font-family: Consolas, "Courier New", monospace;
   font-weight: bold;
-  font-size: 14px;
-  color: #0f172a;
+  font-size: 14.5px;
+  color: var(--ink);
 }
 
 .table-input-error {
@@ -472,9 +533,9 @@ p.sub-title {
 }
 
 .btn-remove-row {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   border: 1px solid #fecaca;
   background-color: #fef2f2;
   color: #dc2626;
@@ -491,7 +552,7 @@ p.sub-title {
   background-color: #dc2626;
   border-color: #dc2626;
   color: #ffffff;
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 /* 6. BARIS TAMBAH ITEM & RINGKASAN */
@@ -501,7 +562,7 @@ p.sub-title {
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .btn-add-row {
@@ -509,11 +570,11 @@ p.sub-title {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 9px 16px;
-  background-color: #f0fdf4;
-  color: #0e6231;
-  border: 1px dashed #117b3d;
-  border-radius: 8px;
+  padding: 10px 18px;
+  background-color: var(--blue-soft);
+  color: var(--blue-dark);
+  border: 1.5px dashed var(--blue);
+  border-radius: 999px;
   font-size: 13px;
   font-weight: bold;
   cursor: pointer;
@@ -522,7 +583,8 @@ p.sub-title {
 }
 
 .btn-add-row:hover {
-  background-color: #dcfce7;
+  background-color: var(--blue);
+  color: #ffffff;
   border-style: solid;
 }
 
@@ -534,29 +596,29 @@ p.sub-title {
 }
 
 .summary-pill {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  color: #334155;
-  padding: 7px 12px;
-  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid var(--blue-line);
+  color: var(--muted);
+  padding: 8px 14px;
+  border-radius: 999px;
   font-size: 13px;
 }
 
 .summary-pill strong {
-  color: #0e6231;
+  color: var(--blue-dark);
 }
 
 .keyboard-tip {
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--muted);
 }
 
-/* 7. CATATAN & TOMBOL SUBMIT */
+/* 7. TOMBOL SUBMIT */
 .order-submit-area {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #e2e8f0;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -567,23 +629,23 @@ p.sub-title {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 13px 32px;
-  background: linear-gradient(135deg, #0e6231, #15803d);
+  padding: 14px 36px;
+  background: linear-gradient(135deg, var(--green-dark), #00bd5a);
   color: #ffffff;
   border: none;
-  border-radius: 10px;
+  border-radius: 999px;
   font-size: 15px;
-  font-weight: bold;
+  font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(14, 98, 49, 0.35);
+  box-shadow: 0 10px 22px rgba(0, 166, 79, 0.35);
   transition: all 0.2s ease;
   font-family: inherit;
-  min-height: 46px;
+  min-height: 48px;
 }
 
 .btn-submit-order:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(14, 98, 49, 0.45);
+  box-shadow: 0 14px 28px rgba(0, 166, 79, 0.45);
 }
 
 .btn-submit-order:active {
@@ -605,11 +667,11 @@ p.sub-title {
 }
 
 .btn-nav-action {
-  background-color: #0e6231;
+  background: linear-gradient(135deg, var(--blue-dark), var(--blue));
   color: #ffffff;
-  border: 1px solid #0e6231;
-  padding: 7px 14px;
-  border-radius: 20px;
+  border: 1px solid var(--blue-dark);
+  padding: 8px 16px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: bold;
   cursor: pointer;
@@ -618,22 +680,24 @@ p.sub-title {
   gap: 6px;
   transition: all 0.15s ease;
   font-family: inherit;
-  box-shadow: 0 2px 6px rgba(14, 98, 49, 0.25);
+  box-shadow: 0 6px 14px rgba(11, 138, 216, 0.3);
 }
 
 .btn-nav-action:hover {
-  background-color: #15803d;
   transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(11, 138, 216, 0.4);
 }
 
 .btn-nav-secondary {
-  background-color: #ffffff;
-  color: #0e6231;
-  border: 1px solid #117b3d;
+  background: #ffffff;
+  color: var(--blue-dark);
+  border: 1.5px solid var(--blue);
+  box-shadow: none;
 }
 
 .btn-nav-secondary:hover {
-  background-color: #f0fdf4;
+  background: var(--blue-soft);
+  box-shadow: none;
 }
 
 .orders-toolbar {
@@ -648,26 +712,27 @@ p.sub-title {
 .orders-search-input {
   flex: 1;
   min-width: 220px;
-  padding: 10px 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 13px;
+  padding: 11px 16px;
+  border: 1.5px solid #cfdcea;
+  border-radius: 999px;
+  font-size: 13.5px;
   font-family: inherit;
-  color: #1e293b;
+  color: var(--ink);
+  background-color: #fbfdff;
 }
 
 .orders-search-input:focus {
   outline: none;
-  border-color: #117b3d;
-  box-shadow: 0 0 0 3px rgba(17, 123, 61, 0.16);
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(11, 138, 216, 0.16);
 }
 
 .btn-refresh-orders {
-  background-color: #f8fafc;
-  border: 1px solid #cbd5e1;
-  color: #334155;
-  padding: 9px 14px;
-  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1.5px solid #cfdcea;
+  color: var(--ink);
+  padding: 9px 16px;
+  border-radius: 999px;
   font-size: 13px;
   font-weight: bold;
   cursor: pointer;
@@ -679,27 +744,27 @@ p.sub-title {
 }
 
 .btn-refresh-orders:hover {
-  background-color: #f0fdf4;
-  border-color: #86efac;
-  color: #0e6231;
+  background-color: var(--blue-soft);
+  border-color: var(--blue);
+  color: var(--blue-dark);
 }
 
 .history-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 13.5px;
 }
 
 .history-table thead th {
-  background-color: #0e6231;
+  background-color: var(--blue-dark);
   color: #ffffff;
-  padding: 11px 10px;
-  font-weight: 600;
+  padding: 12px 10px;
+  font-weight: 700;
   text-align: left;
-  border-right: 1px solid #0b4d26;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
   font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
 }
 
 .history-table thead th:last-child {
@@ -708,11 +773,11 @@ p.sub-title {
 }
 
 .history-table tbody td {
-  padding: 11px 10px;
-  border-top: 1px solid #e2e8f0;
-  border-right: 1px solid #e2e8f0;
+  padding: 12px 10px;
+  border-top: 1px solid #e4edf6;
+  border-right: 1px solid #e4edf6;
   vertical-align: middle;
-  color: #1e293b;
+  color: var(--ink);
 }
 
 .history-table tbody td:last-child {
@@ -721,22 +786,22 @@ p.sub-title {
 }
 
 .history-table tbody tr:nth-child(even) {
-  background-color: #f8fafc;
+  background-color: #f7fbff;
 }
 
 .history-table tbody tr:hover {
-  background-color: #f0fdf4;
+  background-color: var(--blue-soft);
 }
 
 .order-no-badge {
-  font-family: monospace;
+  font-family: Consolas, "Courier New", monospace;
   font-weight: bold;
   font-size: 13px;
-  color: #0e6231;
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  padding: 3px 8px;
-  border-radius: 6px;
+  color: var(--blue-dark);
+  background-color: var(--blue-soft);
+  border: 1px solid var(--blue-line);
+  padding: 4px 10px;
+  border-radius: 999px;
   display: inline-block;
   white-space: nowrap;
 }
@@ -745,31 +810,31 @@ p.sub-title {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 10px;
-  border-radius: 14px;
+  padding: 5px 11px;
+  border-radius: 999px;
   font-size: 11px;
   font-weight: bold;
   line-height: 1.3;
 }
 
 .status-badge-pending {
-  background-color: #fef9c3;
-  color: #854d0e;
-  border: 1px solid #fde047;
+  background-color: var(--blue-soft);
+  color: var(--blue-dark);
+  border: 1px solid var(--blue-line);
 }
 
 .status-badge-done {
-  background-color: #dcfce7;
-  color: #166534;
-  border: 1px solid #86efac;
+  background-color: var(--green-soft);
+  color: #0b6b38;
+  border: 1px solid var(--green-line);
 }
 
 .btn-view-detail {
-  background-color: #f0fdf4;
-  color: #0e6231;
-  border: 1px solid #86efac;
-  padding: 6px 12px;
-  border-radius: 6px;
+  background-color: #ffffff;
+  color: var(--green-dark);
+  border: 1.5px solid var(--green);
+  padding: 6px 13px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: bold;
   cursor: pointer;
@@ -782,9 +847,8 @@ p.sub-title {
 }
 
 .btn-view-detail:hover {
-  background-color: #0e6231;
+  background-color: var(--green);
   color: #ffffff;
-  border-color: #0e6231;
 }
 
 /* 8. FOOTER */
@@ -793,15 +857,26 @@ p.sub-title {
   bottom: 0;
   left: 0;
   width: 100%;
-  background: linear-gradient(90deg, #0a66c2 0%, #0b8ad8 50%, #00a64f 100%);
-  color: #f0f9ff;
-  padding: 8px 16px;
+  background-color: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(6px);
+  color: var(--muted);
+  padding: 9px 18px;
   font-size: 11px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 999;
-  border-top: 3px solid #ffffff;
+  box-shadow: 0 -4px 14px rgba(10, 102, 194, 0.08);
+}
+
+.app-footer::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -3px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--blue), var(--green));
 }
 
 /* 9. RESPONSIVE MOBILE (RAMAH LAYAR HP TANPA SCROLL KANAN) */
@@ -810,15 +885,37 @@ p.sub-title {
     padding: 18px 10px 72px 10px;
   }
 
+  body::before {
+    width: 340px;
+    height: 340px;
+    left: -150px;
+    bottom: -150px;
+  }
+
+  body::after {
+    width: 320px;
+    height: 320px;
+    right: -140px;
+    bottom: -140px;
+  }
+
+  html::before {
+    display: none;
+  }
+
   .brand-hero {
     margin: -18px -10px 0 -10px;
-    padding: 20px 14px 62px 14px;
+    padding: 20px 14px 66px 14px;
+  }
+
+  .brand-hero::after {
+    height: 32px;
   }
 
   .brand-logos {
     gap: 12px;
     padding: 8px 16px;
-    border-radius: 12px;
+    border-radius: 14px;
   }
 
   .brand-divider {
@@ -833,22 +930,22 @@ p.sub-title {
     height: 28px;
   }
 
-  .order-card {
-    margin-top: -38px;
-  }
-
   h1 {
     font-size: 20px;
   }
 
   p.sub-title {
     font-size: 13px;
-    margin-bottom: 18px;
   }
 
   .order-card {
-    padding: 18px 14px;
-    border-radius: 12px;
+    margin-top: -26px;
+    padding: 24px 14px 18px 14px;
+    border-radius: 16px;
+  }
+
+  .order-card::before {
+    border-radius: 16px 16px 0 0;
   }
 
   .card-welcome {
@@ -857,7 +954,7 @@ p.sub-title {
   }
 
   .card-welcome h2 {
-    font-size: 17px;
+    font-size: 18px;
   }
 
   .store-grid {
@@ -875,6 +972,7 @@ p.sub-title {
     border: none;
     background-color: transparent;
     border-radius: 0;
+    box-shadow: none;
   }
 
   .order-table {
@@ -899,10 +997,10 @@ p.sub-title {
     grid-template-areas:
       "no nama nama action"
       "kode kode qty qty";
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
+    border: 1px solid var(--blue-line);
+    border-radius: 12px;
     background-color: #ffffff !important;
-    box-shadow: 0 2px 5px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 3px 8px rgba(10, 102, 194, 0.08);
     overflow: hidden;
   }
 
@@ -914,18 +1012,18 @@ p.sub-title {
 
   .cell-no {
     grid-area: no;
-    background-color: #0e6231;
+    background-color: var(--blue-dark);
     color: #ffffff;
     font-size: 12px;
     justify-content: center;
-    border-bottom: 1px solid #e2e8f0 !important;
+    border-bottom: 1px solid #e4edf6 !important;
     padding: 0 !important;
   }
 
   .cell-nama {
     grid-area: nama;
-    border-bottom: 1px solid #e2e8f0 !important;
-    border-right: 1px solid #e2e8f0 !important;
+    border-bottom: 1px solid #e4edf6 !important;
+    border-right: 1px solid #e4edf6 !important;
   }
 
   .cell-nama .table-input {
@@ -938,14 +1036,14 @@ p.sub-title {
     grid-area: action;
     justify-content: center;
     background-color: #fff5f5;
-    border-bottom: 1px solid #e2e8f0 !important;
+    border-bottom: 1px solid #e4edf6 !important;
     padding: 4px !important;
   }
 
   .cell-kode {
     grid-area: kode;
-    border-right: 1px solid #e2e8f0 !important;
-    background-color: #f8fafc;
+    border-right: 1px solid #e4edf6 !important;
+    background-color: #f7fbff;
     padding: 4px 8px !important;
     display: flex;
     align-items: center;
@@ -956,7 +1054,7 @@ p.sub-title {
     content: "KODE";
     font-size: 10px;
     font-weight: bold;
-    color: #64748b;
+    color: var(--muted);
     letter-spacing: 0.4px;
     flex-shrink: 0;
   }
@@ -966,13 +1064,13 @@ p.sub-title {
     font-size: 13px;
     text-align: left;
     background-color: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
+    border: 1px solid #cfdcea;
+    border-radius: 8px;
   }
 
   .cell-qty {
     grid-area: qty;
-    background-color: #f0fdf4;
+    background-color: var(--blue-soft);
     padding: 4px 8px !important;
     display: flex;
     align-items: center;
@@ -983,7 +1081,7 @@ p.sub-title {
     content: "QTY (PCS)";
     font-size: 10px;
     font-weight: bold;
-    color: #0e6231;
+    color: var(--blue-dark);
     letter-spacing: 0.3px;
     flex-shrink: 0;
   }
@@ -993,8 +1091,8 @@ p.sub-title {
     font-size: 14px;
     text-align: center;
     background-color: #ffffff;
-    border: 1px solid #86efac;
-    border-radius: 6px;
+    border: 1px solid #9fd0f7;
+    border-radius: 8px;
   }
 
   .table-footer-bar {
@@ -1004,7 +1102,7 @@ p.sub-title {
 
   .btn-add-row {
     width: 100%;
-    padding: 11px 16px;
+    padding: 12px 16px;
   }
 
   .summary-pills {
@@ -1046,12 +1144,12 @@ p.sub-title {
   .history-table tbody tr {
     display: flex;
     flex-direction: column;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
+    border: 1px solid var(--blue-line);
+    border-radius: 14px;
     background-color: #ffffff !important;
     padding: 12px;
     gap: 6px;
-    box-shadow: 0 2px 5px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 3px 8px rgba(10, 102, 194, 0.08);
   }
 
   .history-table tbody td {
@@ -1068,7 +1166,7 @@ p.sub-title {
     content: attr(data-label);
     font-size: 11px;
     font-weight: bold;
-    color: #64748b;
+    color: var(--muted);
     text-transform: uppercase;
     text-align: left;
     flex-shrink: 0;
@@ -1077,7 +1175,7 @@ p.sub-title {
   .history-table tbody td:last-child {
     margin-top: 6px;
     padding-top: 8px;
-    border-top: 1px dashed #e2e8f0;
+    border-top: 1px dashed var(--line);
     justify-content: flex-end;
   }
 
@@ -1088,6 +1186,6 @@ p.sub-title {
   .btn-view-detail {
     width: 100%;
     justify-content: center;
-    padding: 8px 12px;
+    padding: 9px 12px;
   }
 }

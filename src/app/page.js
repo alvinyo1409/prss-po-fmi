@@ -521,7 +521,7 @@ export default function HomePage() {
         text: !incompleteRow.isItemLockedValid
           ? `Pada Baris #${incompleteRow.idx + 1}, pastikan Kode Item dan Nama Item sudah dipilih dari rekomendasi.`
           : `Pada Baris #${incompleteRow.idx + 1}, harap isi jumlah Qty (minimal 1 Pcs).`,
-        confirmButtonColor: "#117b3d",
+        confirmButtonColor: "#008a41",
       });
       return;
     }
@@ -531,7 +531,7 @@ export default function HomePage() {
         icon: "warning",
         title: "Daftar Item Kosong",
         text: "Harap pilih minimal 1 item dari rekomendasi dan isi jumlah Qty lebih dari 0.",
-        confirmButtonColor: "#117b3d",
+        confirmButtonColor: "#008a41",
       });
       return;
     }
@@ -568,24 +568,24 @@ export default function HomePage() {
         icon: "success",
         title: "Pesanan Berhasil Terinput!",
         html: `
-          <div style="margin:10px 0 14px 0;padding:14px;background:#f0fdf4;border:2px dashed #117b3d;border-radius:10px;text-align:center;">
+          <div style="margin:10px 0 14px 0;padding:14px;background:#f0fdf4;border:2px dashed #008a41;border-radius:10px;text-align:center;">
             <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.6px;font-weight:bold;">
               Nomor Pesanan Anda
             </div>
-            <div style="font-size:22px;font-weight:bold;color:#0e6231;font-family:monospace;margin-top:4px;letter-spacing:0.8px;">
+            <div style="font-size:22px;font-weight:bold;color:#0a66c2;font-family:monospace;margin-top:4px;letter-spacing:0.8px;">
               ${escapeHtml(savedOrder.no_order)}
             </div>
           </div>
           <div style="text-align:left;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-size:13px;line-height:1.6;">
             <div><strong>Toko:</strong> ${escapeHtml(savedOrder.kode_toko)} — ${escapeHtml(savedOrder.nama_toko)}</div>
             <div><strong>Total Pesanan:</strong> ${Number(savedOrder.total_jenis_item)} Jenis Item (${Number(savedOrder.total_qty).toLocaleString("id-ID")} Pcs)</div>
-            <div><strong>Status:</strong> <span style="color:#854d0e;font-weight:bold;">${escapeHtml(savedOrder.status)}</span></div>
+            <div><strong>Status:</strong> <span style="color:#0a66c2;font-weight:bold;">${escapeHtml(savedOrder.status)}</span></div>
           </div>
         `,
         showCancelButton: true,
         confirmButtonText: '<i class="fa-solid fa-clipboard-check"></i> Check Pesanan',
         cancelButtonText: "Tutup",
-        confirmButtonColor: "#117b3d",
+        confirmButtonColor: "#008a41",
         cancelButtonColor: "#64748b",
         reverseButtons: true,
       });
@@ -598,7 +598,7 @@ export default function HomePage() {
         icon: "error",
         title: "Gagal Menyimpan Pesanan",
         text: err?.message || "Terjadi kendala saat menyimpan pesanan.",
-        confirmButtonColor: "#117b3d",
+        confirmButtonColor: "#008a41",
       });
     } finally {
       setSubmitting(false);
@@ -615,7 +615,7 @@ export default function HomePage() {
         (it, idx) => `
           <tr>
             <td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:center;color:#64748b;font-weight:bold;">${idx + 1}</td>
-            <td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;font-family:monospace;font-weight:bold;color:#0e6231;">${escapeHtml(it.kode || "-")}</td>
+            <td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;font-family:monospace;font-weight:bold;color:#0a66c2;">${escapeHtml(it.kode || "-")}</td>
             <td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:left;color:#1e293b;">${escapeHtml(it.nama || "-")}</td>
             <td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:bold;font-family:monospace;color:#0f172a;white-space:nowrap;">${Number(it.qty || 0).toLocaleString("id-ID")} Pcs</td>
           </tr>
@@ -628,20 +628,20 @@ export default function HomePage() {
       width: 640,
       html: `
         <div style="text-align:left;font-size:13px;">
-          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #117b3d;border-radius:8px;padding:12px 14px;margin-bottom:14px;line-height:1.6;">
-            <div><strong>No. Order:</strong> <span style="font-family:monospace;font-weight:bold;color:#0e6231;">${escapeHtml(ord.no_order)}</span></div>
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #008a41;border-radius:8px;padding:12px 14px;margin-bottom:14px;line-height:1.6;">
+            <div><strong>No. Order:</strong> <span style="font-family:monospace;font-weight:bold;color:#0a66c2;">${escapeHtml(ord.no_order)}</span></div>
             <div><strong>Tanggal Input:</strong> ${escapeHtml(formatTanggalOrder(ord.tanggal))}</div>
             <div><strong>Toko:</strong> ${escapeHtml(ord.kode_toko)} — ${escapeHtml(ord.nama_toko)}</div>
             ${storeInfo?.dc ? `<div><strong>DC / Tipe:</strong> ${escapeHtml(storeInfo.dc)}${storeInfo.type ? ` (${escapeHtml(storeInfo.type)})` : ""}</div>` : ""}
             ${storeInfo?.pic ? `<div><strong>PIC Toko:</strong> ${escapeHtml(storeInfo.pic)}</div>` : ""}
             ${storeInfo?.address ? `<div><strong>Alamat:</strong> ${escapeHtml(storeInfo.address)}</div>` : ""}
-            <div><strong>Status:</strong> <span style="background:#fef9c3;color:#854d0e;border:1px solid #fde047;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;">${escapeHtml(ord.status)}</span></div>
+            <div><strong>Status:</strong> <span style="background:#e6f3ff;color:#0a66c2;border:1px solid #9fd0f7;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;">${escapeHtml(ord.status)}</span></div>
           </div>
 
           <div style="border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;max-height:260px;overflow-y:auto;">
             <table style="width:100%;border-collapse:collapse;font-size:12px;">
               <thead>
-                <tr style="background:#0e6231;color:#ffffff;">
+                <tr style="background:#0a66c2;color:#ffffff;">
                   <th style="padding:8px;text-align:center;width:40px;">No</th>
                   <th style="padding:8px;text-align:left;width:95px;">Kode</th>
                   <th style="padding:8px;text-align:left;">Nama Item</th>
@@ -654,13 +654,13 @@ export default function HomePage() {
             </table>
           </div>
 
-          <div style="display:flex;justify-content:flex-end;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid #e2e8f0;font-weight:bold;color:#0e6231;">
+          <div style="display:flex;justify-content:flex-end;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid #e2e8f0;font-weight:bold;color:#0a66c2;">
             <span>Total: ${Number(ord.total_jenis_item)} Item (${Number(ord.total_qty).toLocaleString("id-ID")} Pcs)</span>
           </div>
         </div>
       `,
       confirmButtonText: "Tutup",
-      confirmButtonColor: "#117b3d",
+      confirmButtonColor: "#008a41",
     });
   };
 
@@ -767,7 +767,7 @@ export default function HomePage() {
                 style={{
                   backgroundColor: "#f0fdf4",
                   border: "1px solid #bbf7d0",
-                  color: "#0e6231",
+                  color: "#0a66c2",
                   padding: "10px 14px",
                   borderRadius: "8px",
                   fontSize: "13px",
@@ -901,7 +901,7 @@ export default function HomePage() {
                     <div className="store-address">
                       <i
                         className="fa-solid fa-location-dot"
-                        style={{ color: "#117b3d", marginTop: 2 }}
+                        style={{ color: "#008a41", marginTop: 2 }}
                       ></i>
                       <span>{selectedStore.address}</span>
                     </div>
@@ -1049,7 +1049,7 @@ export default function HomePage() {
               <div className="keyboard-tip">
                 <i
                   className="fa-regular fa-lightbulb"
-                  style={{ color: "#117b3d", marginRight: 6 }}
+                  style={{ color: "#008a41", marginRight: 6 }}
                 ></i>
                 Tips: Klik <strong>Tambah Baris Item</strong> atau tekan tombol{" "}
                 <strong>Enter</strong> pada kolom Qty untuk menambah baris baru.
